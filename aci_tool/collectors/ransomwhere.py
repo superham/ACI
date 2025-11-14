@@ -2,7 +2,7 @@ import os, json, requests
 from ..utils import parse_dt, safe_float
 from ..schemas import Payment
 
-DUMP = "https://ransomwhere.github.io/ransomwhere-data/ransomwhere_data.json"
+DUMP = "https://api.ransomwhe.re/export"
 # static data - ... use for dev 
 
 def fetch_payments():
@@ -20,17 +20,32 @@ def fetch_payments():
             print("[RWHERE] No data available" ) # TODO: make this more verbose
 
     out = []
-    for row in data:
+    # The API returns {"result": [...]} wrapper
+    results = data.get("result", []) if isinstance(data, dict) else data
+    
+    for row in results:
+        # Calculate total USD from transactions if available
+        total_usd = 0
+        tx_count = 0
+        first_tx_time = None
+        
+        if "transactions" in row and row["transactions"]:
+            tx_count = len(row["transactions"])
+            total_usd = sum(tx.get("amountUSD", 0) for tx in row["transactions"])
+            # Get earliest transaction time
+            tx_times = [tx.get("time") for tx in row["transactions"] if tx.get("time")]
+            first_tx_time = min(tx_times) if tx_times else None
+        
         out.append(Payment(
             source="ransomwhere",
-            family=row.get("ransomware_family"),
-            group=row.get("ransomware_family"),
-            address=row.get("payment_address") or "unknown",
-            first_tx_at=parse_dt(row.get("first_transaction_time")),
-            amount_usd=safe_float(row.get("total_usd_paid")),
-            tx_count=row.get("transaction_count"),
+            family=row.get("family"),
+            group=row.get("family"),
+            address=row.get("address") or "unknown",
+            first_tx_at=parse_dt(first_tx_time),
+            amount_usd=safe_float(total_usd),
+            tx_count=tx_count,
             extra={k: v for k, v in row.items() if k not in {
-                "ransomware_family","payment_address","first_transaction_time","total_usd_paid","transaction_count"}}
+                "family", "address", "transactions"}}
         ))
     return out
 

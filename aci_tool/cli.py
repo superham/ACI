@@ -1,9 +1,13 @@
 import argparse, os, json
 import pandas as pd
 from datetime import datetime
+from dotenv import load_dotenv
 from .config import Config
 from .collectors.ransomware_live import fetch_claims, dump_raw as dump_rlive
 from .collectors.ransomwhere import fetch_payments, dump_raw as dump_rwhere
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Helper to ensure data directories exist
 def ensure_dirs(cfg: Config):
