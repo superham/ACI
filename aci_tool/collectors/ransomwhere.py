@@ -6,6 +6,8 @@ DUMP = "https://ransomwhere.github.io/ransomwhere-data/ransomwhere_data.json"
 # static data - ... use for dev 
 
 def fetch_payments():
+    # print("I made it here lol")
+
     try:
         r = requests.get(DUMP, timeout=30)
         r.raise_for_status()
@@ -13,6 +15,9 @@ def fetch_payments():
     except Exception: # TODO - no need to catch the failed request for full releae
         sample_path = os.path.join("data", "raw", "ransomwhere_sample.json")
         data = json.load(open(sample_path)) if os.path.exists(sample_path) else []
+        
+        if (not data):
+            print("[RWHERE] No data available" ) # TODO: make this more verbose
 
     out = []
     for row in data:
