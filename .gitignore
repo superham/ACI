@@ -1,0 +1,36 @@
+# Python cache / build files (if we had any lol)
+__pycache__/
+build/
+dist/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# VSCode / JetBrains
+.vscode/
+.idea/
+
+# Local environment variables
+# (never commit API keys)
+.env
+.env.*
+*.env
+
+# Project data directories
+# Raw API data (claims, payments, etc.)
+data/raw/*
+data/processed/*
+
+# Analysis outputs
+reports/*
+
+# Logs
+*.log
+logs/
+log/
+
+# System files
+.DS_Store
+Thumbs.db
