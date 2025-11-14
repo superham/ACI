@@ -14,10 +14,13 @@ def ensure_dirs(cfg: Config):
 def cmd_collect(args):
     cfg = Config(rlive_api_key=os.getenv("RLIVE_API_KEY"))
     ensure_dirs(cfg)
-    claims = fetch_claims(cfg.rlive_api_key, since=args.since)
+    
+    claims = fetch_claims(cfg.rlive_api_key, since=args.since) # Think of claims like a suspected attack but may be unverified
     dump_rlive(claims, os.path.join(cfg.data_dir, "raw", "ransomware_live.jsonl")) # TODO: expand to handle extra sources
+    
     pays = fetch_payments()
     dump_rwhere(pays, os.path.join(cfg.data_dir, "raw", "ransomwhere.jsonl")) # TODO: same as above
+   
     print(f"Collected: {len(claims)} claims, {len(pays)} payments.")
 
 def main():

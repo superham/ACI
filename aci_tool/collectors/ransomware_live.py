@@ -19,7 +19,11 @@ def fetch_claims(api_key: Optional[str], since: Optional[str] = None) -> List[Cl
     try:
         r = requests.get(url, headers=headers, params=params, timeout=30)
         print("[RLIVE PRO] status:", r.status_code) # TODO: remove prints / clean up
-        print("[RLIVE PRO] snippet:", r.text[:200])
+        print("[RLIVE PRO] snippet:", r.text[:200]) # TODO: smart check for missing api key here
+        
+        if (r.status_code == 401):
+            raise Exception("Check your API key")
+
         r.raise_for_status()
         data = r.json()
     except Exception as e:
