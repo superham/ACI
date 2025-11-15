@@ -3,12 +3,19 @@ import pandas as pd
 # NOTE: this file converts per-group metrics into a 0 - 1 scale, then combines them into a single ACI score
 
 # NOTE: This is where the weights can be modified - will implement better controls in future
-FEATURE_WEIGHTS = {
+FEATURE_WEIGHTS_OLD = {
     "claim_confirm_rate": 0.35, # How often do claims get confirmed?
     "on_time_rate": 0.15, # Does the attacker follow through on the agreement?
     "payment_incidence": 0.35, # How often do victims pay?
     "reextortion_inverse": 0.10, # How often do victims pay more than once?
     "ops_maturity": 0.05, # How mature are the attacker operations?
+}
+
+FEATURE_WEIGHTS = {
+    "decrypt_success_rate": 0.35,
+    "median_key_delivery_time": 0.25,
+    "leak_removal_rate": 0.25,
+    "reextortion_inverse": 0.15
 }
 
 # TODO !!!! - Implement features from thesis aka constrcut them from the raw data

@@ -37,3 +37,26 @@ class Confirmation(BaseModel):
     extra: Dict[str, Any] = {}
 
 # NOTE: These are specific for ransomware.live pro and ransomwwhere api responses, will need to be generalized
+
+from pydantic import BaseModel
+from typing import Any, Dict, List, Optional
+
+class Negotiation(BaseModel):
+    source: str = "ransomware_live_pro"
+    group: str
+    chat_id: str
+
+    # Optional victim identifier, might be in metadata
+    victim: Optional[str] = None
+
+    # Raw timestamps
+    started_at: Optional[str] = None
+    ended_at: Optional[str] = None
+
+    # Full raw content, so can compute:
+    # - decrypt_success_rate
+    # - median key delivery time
+    # - re-extortion rate
+    messages: List[Dict[str, Any]] = []
+    ransominfo: Dict[str, Any] = {}
+    meta: Dict[str, Any] = {}

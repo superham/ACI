@@ -3,7 +3,7 @@ from typing import Optional, List
 from ..utils import parse_dt
 from ..schemas import Claim
 
-# Pro API ransomware - free
+# Pro API ransomware - used to infer leak site removal
 BASE = "https://api-pro.ransomware.live"
 VICTIMS_RECENT_PATH = "/victims/recent" # recent -> last 100 victims, sorted by discovery date
 
