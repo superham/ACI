@@ -20,7 +20,10 @@ pip install -r requirements.txt
 export RLIVE_API_KEY="< insert key here >" # Do this for each instance of shell running the tool
 # I'll make this easier later
 
-# Collect sample/real data (optional)
+# Collect sample/real data
 python -m aci_tool.cli collect --since 2024-01-01
+
+# Gather data from negotiation data / chats
+python -m  aci_tool.cli chat-features  --input './data/raw/negotiations.jsonl' --out './data/processed/chat_features.csv'
 
 ```

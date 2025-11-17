@@ -6,6 +6,8 @@ from .config import Config
 from .collectors.ransomware_live import fetch_claims, dump_raw as dump_rlive
 from .collectors.ransomwhere import fetch_payments, dump_raw as dump_rwhere
 from .collectors.negotiations import fetch_negotiations, dump_raw_negotations
+from .chat_semantic import extract_chat_features_from_jsonl
+import pandas as pd
 # from .compute import claim_confirmation_rate, on_time_publish_rate, payment_incidence
 # from .linkage import link_claims_to_confirms
 # from .scoring import combine_features, score
@@ -46,6 +48,12 @@ def cmd_collect(args):
     dump_raw_negotations(negs, os.path.join(cfg.data_dir, "raw", "negotiations.jsonl"))
    
     print(f"Collected: {len(claims)} claims, {len(pays)} payments.")
+
+def cmd_chat_features(args):
+    rows = list(extract_chat_features_from_jsonl(args.input))
+    df = pd.DataFrame(rows)
+    df.to_csv(args.out, index=False)
+    print(f"[ACI] Wrote {len(df)} chat feature rows → {args.out}")
 
 # Command: compute ACI scores with data from the collect call 
 # def cmd_compute(args):
@@ -91,6 +99,11 @@ def main():
         help="Max negotiation groups to fetch from the ransomware.live API",
     )
     pc.set_defaults(func=cmd_collect)
+
+    pc = sub.add_parser("chat-features")
+    pc.add_argument("--input", required=True, help="Path to negotiations.jsonl") # TODO: make this a relative path
+    pc.add_argument("--out", required=True, help="Where to write chat_features.csv")
+    pc.set_defaults(func=cmd_chat_features)
 
     args = p.parse_args()
     args.func(args)
