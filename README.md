@@ -26,4 +26,7 @@ python -m aci_tool.cli collect --since 2024-01-01
 # Gather data from negotiation data / chats
 python -m  aci_tool.cli chat-features  --input './data/raw/negotiations.jsonl' --out './data/processed/chat_features.csv'
 
+# Compute group-based ACI scores based on previously collected and gathered data
+python -m  aci_tool.cli compute-aci --chat-features './data/processed/chat_features.csv' --claims './data/raw/ransomware_live.jsonl' --out './reports/aci_scores.csv'
+
 ```
