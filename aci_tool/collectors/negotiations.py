@@ -1,9 +1,12 @@
 # Determines decrption success rate, time to key, and re-extortion attempts
+# NOTE: Modify the --neg-limit flag to limit the number of groups we pull
+#       It defaults to only 5 in cli.py
+#       This is a time-consuming process, so ramp up the neg-limit in increments
 
 import os, json, requests
 from typing import Optional, List
 from ..schemas import Negotiation
-from ..utils import parse_dt  # if you want to normalize timestamps later
+from ..utils import parse_dt  # TODO can use to normalize timestamps later 
 
 BASE = "https://api-pro.ransomware.live"
 
@@ -58,15 +61,13 @@ def fetch_negotiations(api_key: Optional[str], limit_groups: Optional[int] = Non
       - fetches each group's chat metadata
       - fetches full chat detail for each chat
       - returns list[Negotiation]
-
-    For v1, we do minimal parsing and keep almost everything raw.
     """
     if not api_key:
         print("[NEGOTIATIONS] No API key; returning empty list.")
         return []
 
     groups_info = fetch_negotiation_groups(api_key)
-    # Response format: {"client": "...", "count": 24, "groups": [{"group": "Akira", "chats": 61}, ...]}
+    # Example response format: {"client": "...", "count": 24, "groups": [{"group": "Akira", "chats": 61}, ...]}
     if isinstance(groups_info, dict) and "groups" in groups_info:
         groups = [g["group"] for g in groups_info["groups"] if "group" in g]
     elif isinstance(groups_info, dict):
