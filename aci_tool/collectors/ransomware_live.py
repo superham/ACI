@@ -39,28 +39,6 @@ def fetch_claims(api_key: Optional[str], since: Optional[str] = None) -> List[Cl
     rows = data.get("victims", []) if isinstance(data, dict) else data
     print(f"[RLIVE PRO] victims in response: {len(rows)}")
 
-
-    # for row in rows:
-    #     print("[RLIVE PRO] example victim:", rows[0])
-    #     claims.append(Claim(
-    #         source="ransomware_live_pro",
-    #         group=row.get("group"),                 # e.g. "lockbit3"
-    #         group_alias=row.get("group"),
-    #         victim_legal_name=row.get("post_title") or row.get("name"),
-    #         victim_domain=row.get("website") or row.get("domain"),
-    #         sector=row.get("sector"),
-    #         country=row.get("country"),
-    #         claim_date=parse_dt(row.get("discovered")),
-    #         deadline=parse_dt(row.get("deadline")),     # if present
-    #         publish_date=parse_dt(row.get("published")),
-    #         post_url=row.get("source_url") or row.get("url"),
-    #         extra={k: v for k, v in row.items() if k not in {
-    #             "group","post_title","name","website","domain",
-    #             "sector","country","discovered","deadline","published",
-    #             "source_url","url"
-    #         }}
-    #     ))
-
     for row in rows:
         claims.append(Claim(
         source="ransomware_live_pro",

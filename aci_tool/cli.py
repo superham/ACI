@@ -80,7 +80,7 @@ def main():
     pc.add_argument(
         "--neg-limit",
         type=int,
-        default=5, # default of 5 because each group has lots of chats
+        default=24, # default of 24 is max api (10/17/25) returns - can reduce for speed of testing
         help="Max negotiation groups to fetch from the ransomware.live API",
     )
     pc.set_defaults(func=cmd_collect)

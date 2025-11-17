@@ -161,6 +161,7 @@ def load_claims(path: str) -> pd.DataFrame:
     df = pd.read_json(path, lines=True)
     if "group" not in df.columns:
         raise ValueError("ransomware_live.jsonl must contain a 'group' column.")
+    df["group"] = df["group"].astype(str).str.strip().str.lower() # fix bug where group abc & ABC were treated as different
     return df
 
 
@@ -226,6 +227,7 @@ def compute_claim_group_features(df_claims: pd.DataFrame) -> pd.DataFrame:
 def combine_group_features(
     df_chat_group: pd.DataFrame,
     df_claim_group: pd.DataFrame,
+    strict: bool = True, # disallows ACI computation if any group is missing two of three core features
 ) -> pd.DataFrame:
     """
     Merge chat-derived features and claim-derived features on 'group'.
@@ -233,6 +235,9 @@ def combine_group_features(
     Returns a single DataFrame per group with all intermediate features that
     scoring.py will use to build the ACI.
     """
+
+    # TODO use strict
+
     df = pd.merge(df_chat_group, df_claim_group, on="group", how="outer", suffixes=("_chat", "_claims"))
     # Sort groups alphabetically for sanity
     return df.sort_values("group").reset_index(drop=True)
