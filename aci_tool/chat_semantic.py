@@ -1,137 +1,17 @@
 """
 Semantic feature extraction from ransomware negotiation chats.
-v1 used small dataset of 5 groups to prototype this feature
-TODO make large call then modify this to fit additional data
 """
 
 from __future__ import annotations
 import json
-import math
 import re
-from typing import Any, Dict, Iterable, List, Optional, Generator, Mapping
+from typing import Any, Dict, List, Optional, Generator, Mapping
 from sentence_transformers import SentenceTransformer, util
-
-# TODO: This will grow so move to its own file
-PROTOTYPES: Dict[str, List[str]] = {
-    # KEY DELIVERY & DECRYPTION RELIABILITY
-    # Attacker offers to decrypt a few files as proof
-    "proof_offer": [
-        "send us some encrypted files and we will decrypt them",
-        "we can decrypt test files for you",
-        "we will decrypt a few files as proof",
-        "we will show you we can decrypt your data",
-        "upload several encrypted files for verification",
-        "we will return decrypted samples so you can verify",
-        "we will decrypt sample files to prove we have the key",
-    ],
-
-    # Victim confirms the sample decryption worked
-    "proof_success": [
-        "the decrypted files work",
-        "the sample you returned is correct",
-        "we can open the decrypted files",
-        "the decryption was successful",
-        "the files you sent back were properly decrypted",
-        "the decrypted samples opened successfully",
-    ],
-
-    # Attacker sends or references a decryptor/key (key delivery)
-    "key_delivery": [
-        "here is your decryptor",
-        "here is the decryption tool",
-        "we provide the decryptor",
-        "we will send you the key",
-        "here is the key",
-        "download your decryptor here",
-        "you can download the decryption key",
-        "the decryptor is available at this link",
-    ],
-
-    # THREAT FOLLOW-THROUGH (Leaking/Shaming/Auctioning data)
-    "leak_threat": [
-        "we will publish your data",
-        "your data will be published",
-        "we will leak your files",
-        "your files will be leaked",
-        "we will release your data",
-        "your data will be uploaded",
-        "we will make your data public",
-        "we will put your data on our site",
-        "your company will appear on our news column",
-        "your data will be sold",
-        "we will sell your data",
-        "we will auction your data",
-    ],
-
-    # Explicit “follow-through” language — attacker says they already leaked
-    # or are currently leaking (evidence they tend to act on threats)
-    "leak_followthrough": [
-        "your data has been published",
-        "your data is already published",
-        "your data has been leaked",
-        "we have released your data",
-        "we already leaked your files",
-        "your files are already on our site",
-        "your data is now public",
-        "your leaks are posted",
-    ],
-
-    # POST-PAYMENT INTEGRITY & RE-EXTORTION
-    # Attacker promises deletion / non-disclosure after payment
-    "deletion_promise": [
-        "we will delete your data after payment",
-        "we will erase your data",
-        "we will remove your files from our servers",
-        "we guarantee data deletion after you pay",
-        "after payment your data will be deleted",
-        "we will not publish your data once payment is received",
-    ],
-
-    # Attacker explicitly promises no future extortion
-    "no_future_extortion_promise": [
-        "we will not attack you again",
-        "you will not be targeted again",
-        "we will not ask for more money",
-        "there will be no second demand",
-        "after payment this matter is closed",
-        "we will not return to you again",
-    ],
-
-    # Victim accuses attacker of breaking a promise (strong signal)
-    "violation_claim": [
-        "you promised to delete our data",
-        "you said the data would be deleted",
-        "you said you would not publish our files",
-        "you said you would not attack us again",
-        "you asked for more money after we paid",
-        "you leaked our data even after payment",
-    ],
-
-    # Attacker openly engages in re-extortion behavior
-    "reextortion_behavior": [
-        "you must pay again",
-        "the price has increased even after payment",
-        "you need to make another payment",
-        "we require additional money",
-        "you still have to pay more",
-    ],
-
-    # Attacker states that they sell or reuse data
-    # → strong negative for integrity score
-    "data_resale_admission": [
-        "we sell data",
-        "your data will be sold to third parties",
-        "we resell company data",
-        "we sell leaked data",
-        "we redistribute exfiltrated data",
-    ],
-}
-
+from aci_tool.prototypes.chat_semantic_proto import PROTOTYPES
 
 # Lazily-loaded model + prototype embeddings
 _MODEL: Optional[SentenceTransformer] = None
 _PROTO_EMBS: Optional[Dict[str, Any]] = None
-
 
 def _get_model_and_prototypes():
     """Load the embedding model and prototype embeddings once."""
@@ -144,11 +24,9 @@ def _get_model_and_prototypes():
         }
     return _MODEL, _PROTO_EMBS
 
-
 # helpers
 _SENT_SPLIT_RE = re.compile(r"[.!?]\s+")
 _AMOUNT_RE = re.compile(r"(\d[\d,\.]*)")
-
 
 def split_sentences(text: str) -> List[str]:
     """Very rough sentence splitter; good enough for the negotiation chats"""
@@ -216,7 +94,6 @@ def classify_sentence_semantic(
         hits[label] = bool(sim >= threshold)
     return hits
 
-
 # Aggregate per message & per chat
 def extract_flags_from_message(
     msg: Mapping[str, Any],
@@ -235,7 +112,6 @@ def extract_flags_from_message(
             if hit:
                 agg[label] = True
     return agg
-
 
 def extract_chat_features(chat: Mapping[str, Any]) -> Dict[str, Any]:
     """
@@ -282,7 +158,6 @@ def extract_chat_features(chat: Mapping[str, Any]) -> Dict[str, Any]:
 
     return features
 
-
 # more helpers for whole file analysis
 def iter_jsonl(path: str) -> Generator[Dict[str, Any], None, None]:
     """Yield parsed JSON objects from a JSONL file."""
@@ -292,7 +167,6 @@ def iter_jsonl(path: str) -> Generator[Dict[str, Any], None, None]:
             if not line:
                 continue
             yield json.loads(line)
-
 
 def extract_chat_features_from_jsonl(
     path: str,
