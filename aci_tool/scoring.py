@@ -38,7 +38,7 @@ def _nanmean(values: list[Optional[float]], weights: list[float]) -> float:
         return np.nan
     return total / total_weight
 
-# Compute (Key Delivery & Decryption Reliability)
+# Compute R - (Key Delivery & Decryption Reliability)
 def compute_reliability(df_group: pd.DataFrame) -> pd.Series:
     """
     reliability score per group [0,1]
@@ -49,8 +49,8 @@ def compute_reliability(df_group: pd.DataFrame) -> pd.Series:
       - proof_success_rate  (optional, if available & non-NaN)
 
     Formula (TODO change):
-      R = 0.6 * sample_offer_rate
-          + 0.4 * key_delivery_rate
+      R = 0.5 * sample_offer_rate
+          + 0.5 * key_delivery_rate
     If key_delivery_rate is missing, falls back to sample_offer_rate only
     """
     values = []
@@ -65,11 +65,11 @@ def compute_reliability(df_group: pd.DataFrame) -> pd.Series:
 
         if not np.isnan(sample):
             components.append(sample)
-            weights.append(0.6)
+            weights.append(0.5)
 
         if not np.isnan(key):
             components.append(key)
-            weights.append(0.4)
+            weights.append(0.5)
 
         # TODO: needs testing
         # uncomment if proof_success can be trusted
@@ -82,7 +82,7 @@ def compute_reliability(df_group: pd.DataFrame) -> pd.Series:
 
     return pd.Series(values, index=df_group.index, name="R")
 
-# Compute (Threat Follow-Through)
+# ComputeT - (Threat Follow-Through)
 def compute_threat_followthrough(df_group: pd.DataFrame) -> pd.Series:
     """
     threat follow-through per group [0,1]
@@ -98,8 +98,8 @@ def compute_threat_followthrough(df_group: pd.DataFrame) -> pd.Series:
 
     Formula (default):
       T = weighted mean of:
-              publish_rate (0.6)
-              leak_threat_rate (0.4)
+              publish_rate (0.5)
+              leak_threat_rate (0.5)
       on_time_publish_rate is folded in lightly if available.
     """
     values = []
@@ -113,13 +113,14 @@ def compute_threat_followthrough(df_group: pd.DataFrame) -> pd.Series:
 
         if not np.isnan(publish_rate):
             components.append(publish_rate)
-            weights.append(0.6)
+            weights.append(0.5)
 
         if not np.isnan(leak_threat_rate):
             components.append(leak_threat_rate)
-            weights.append(0.4)
+            weights.append(0.5)
 
         # Small bump for demonstrated on-time follow-through, if available
+        # TODO consider removing this if on_time_publish_rate is not reliable
         if not np.isnan(on_time):
             components.append(on_time)
             weights.append(0.2)
@@ -129,7 +130,7 @@ def compute_threat_followthrough(df_group: pd.DataFrame) -> pd.Series:
 
     return pd.Series(values, index=df_group.index, name="T")
 
-# Compute I_g (Post-Payment Integrity / Re-Extortion)
+# Compute I - (Post-Payment Integrity / Re-Extortion)
 def compute_integrity(df_group: pd.DataFrame) -> pd.Series:
     """
     post-payment integrity per group [0, 1]
@@ -167,16 +168,17 @@ def compute_integrity(df_group: pd.DataFrame) -> pd.Series:
         # Treat these as "bad" signals; they will be subtracted from 1
         if not np.isnan(violation_claim_rate):
             components.append(violation_claim_rate)
-            weights.append(0.5)
+            weights.append(0.4)
 
         if not np.isnan(reextortion_rate):
             components.append(reextortion_rate)
-            weights.append(0.3)
+            weights.append(0.4)
 
         if not np.isnan(resale_rate):
             components.append(resale_rate)
             weights.append(0.2)
 
+        # Compute the "bad" score (0 = no negative signals, 1 = all negative)
         bad_score = _nanmean(components, weights) if components else 0.0
         bad_score = min(max(bad_score, 0.0), 1.0)  # clamp
 
@@ -185,7 +187,7 @@ def compute_integrity(df_group: pd.DataFrame) -> pd.Series:
 
     return pd.Series(values, index=df_group.index, name="I")
 
-# Combine R, T, I -> ACI_g
+# Combine R, T, I -> ACI
 def compute_aci(df_group: pd.DataFrame) -> pd.DataFrame:
     """
     Given a merged group-level feature table, compute:
@@ -197,10 +199,10 @@ def compute_aci(df_group: pd.DataFrame) -> pd.DataFrame:
 
     Formula (default weights):
 
-      ACI_g_raw = 0.4 * R_g + 0.3 * T_g + 0.3 * I_g
+      ACI_raw = 0.4 * R_g + 0.3 * T_g + 0.3 * I_g
 
     Then:
-      ACI_g = ACI_g_raw * 10
+      ACI = ACI_raw * 10
     """
     df = df_group.copy()
 
