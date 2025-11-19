@@ -1,0 +1,268 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:144.0) Gecko/20100101 Firefox/144.0" version="27.0.6">
+  <diagram name="Page-1" id="q0l4jMnYfegB5tAmD4vq">
+    <mxGraphModel dx="2123" dy="871" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-109" value="" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-130" y="1260" width="1610" height="490" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-62" value="" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="760" width="680" height="470" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-38" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="170" y="380" width="590" height="330" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-13" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="128" width="870" height="192" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-1" target="pxxxRkzl_WgVJOpGTntx-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-1" value="&lt;b&gt;Collect&lt;/b&gt; Ransomware Attack Data From Ransomware.live and Ransomwhe.re" style="whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+          <mxGeometry x="50" y="160" width="140" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-2" value="Attacker Credibility Index (ACI) CLI Tool v1.0" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="337.5" y="98" width="260" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-4" target="pxxxRkzl_WgVJOpGTntx-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-4" value="&lt;b&gt;Gathers&lt;/b&gt;&amp;nbsp;chat-features from negotiation transcripts" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="380" y="165" width="185" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-6" value="&lt;b&gt;Compute&lt;/b&gt;&amp;nbsp;group-based ACI Scores using chat features and related attack data" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="740" y="167.5" width="150" height="125" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-12" value="&lt;b&gt;High-Level Overview&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="370" y="128" width="140" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-14" value="&lt;b&gt;Tool Archicture&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="400" y="330" width="110" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-15" value="Ransomware Attack Transcripts" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="190" y="200" width="190" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-17" value="Transcript Chat Features" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="570" y="200" width="160" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-18" value="Ransomware Attack Data" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="570" y="230" width="160" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-21" value="&lt;b&gt;Command: Collect&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="380" y="380" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-22" value="&lt;b&gt;Example:&lt;/b&gt;&amp;nbsp;python -m aci_tool.cli collect --since 2024-01-1" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="275" y="400" width="330" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-24" target="pxxxRkzl_WgVJOpGTntx-28">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-32" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-24" target="pxxxRkzl_WgVJOpGTntx-26">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-24" value="Fetches claim / leak attack data from&amp;nbsp;Ransomware.live API" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="440" width="150" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-26" target="pxxxRkzl_WgVJOpGTntx-27">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-26" target="pxxxRkzl_WgVJOpGTntx-30">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-26" value="Fetches negotiations chats from&amp;nbsp;Ransomware.live PRO API" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="400" y="440" width="150" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-27" target="pxxxRkzl_WgVJOpGTntx-31">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-27" value="Fetches payment data from&amp;nbsp;Ransomwhere API" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="590" y="440" width="150" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-28" value="Outputs data to ransomware_live.jsonl" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="200" y="580" width="150" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-30" value="Outputs data to negotiations.jsonl" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="400" y="580" width="150" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-31" value="Outputs data to ransomwhere.jsonl" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="590" y="580" width="150" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-39" value="&lt;b&gt;Command: Chat-Features&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="355" y="760" width="170" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-40" value="&lt;b&gt;Example:&lt;/b&gt;&amp;nbsp;python -m aci_tool.cli chat-features --input &amp;lt;negotiations.jsonl&amp;gt; --out &amp;lt;chat_features.csv&amp;gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="170" y="780" width="550" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-53" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-41" target="pxxxRkzl_WgVJOpGTntx-42">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-41" value="Load sentence transformer &quot;all-MiniLM-L6-v2&quot;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="160" y="830" width="160" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-54" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-42" target="pxxxRkzl_WgVJOpGTntx-43">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-42" value="For each chat in negotiations.jsonl" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="385" y="830" width="165" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-55" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-43" target="pxxxRkzl_WgVJOpGTntx-44">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-43" value="Parse ransom amounts" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="970" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-56" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-44" target="pxxxRkzl_WgVJOpGTntx-45">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-44" value="Split the messages into sentences" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="1060" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-58" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-45" target="pxxxRkzl_WgVJOpGTntx-48">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-45" value="Classify each sentence using semantic similarity" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="1150" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-59" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-48" target="pxxxRkzl_WgVJOpGTntx-50">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-48" value="Extract semantic flags (e.g. key_delivery, leak_threat)" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="510" y="1130" width="145" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-60" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-50" target="pxxxRkzl_WgVJOpGTntx-51">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-50" value="Compute discounts (if any)" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="513.75" y="1010" width="137.5" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-51" value="Output chat_features.csv" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="605" y="830" width="165" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-63" value="&lt;b&gt;Command: Compute-ACI&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="375" y="1270" width="170" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-64" value="&lt;b&gt;Example:&lt;/b&gt;&amp;nbsp;python -m aci_tool.cli compute-aci --chat-features &amp;lt;chat_features.csv&amp;gt; --claims &amp;lt;ransomware_live.jsonl&amp;gt; --out &amp;lt;aci_scores.csv&amp;gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="115" y="1290" width="760" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-81" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-65" target="pxxxRkzl_WgVJOpGTntx-66">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-82" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-65" target="pxxxRkzl_WgVJOpGTntx-73">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-65" value="Aggregate Chat Features by Group" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="1350" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-80" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-66" target="pxxxRkzl_WgVJOpGTntx-68">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-66" value="Group parsed chats by group" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="1440" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-70" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-68" target="pxxxRkzl_WgVJOpGTntx-69">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-68" value="Calculate per-group rates" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="150" y="1530" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-69" value="&lt;div&gt;sample_offer_rate&lt;/div&gt;&lt;div&gt;key_delivery_rate&lt;/div&gt;&lt;div&gt;leak_threat_rate&lt;/div&gt;&lt;div&gt;discount_frequency&lt;/div&gt;&lt;div&gt;discount_generosity&lt;/div&gt;&lt;div&gt;deletion_promise_rate&lt;/div&gt;&lt;div&gt;violation_claim_rate&lt;/div&gt;&lt;div&gt;reextortion_behavior_rate&lt;/div&gt;&lt;div&gt;data_resale_admission_rate&lt;/div&gt;" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-100" y="1490" width="180" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-72" value="&lt;b&gt;Calculated Rates&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="-70" y="1460" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-83" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-73" target="pxxxRkzl_WgVJOpGTntx-74">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-85" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-73" target="pxxxRkzl_WgVJOpGTntx-77">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-73" value="Aggregate Claim Features by Group" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="1350" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-74" value="Calculate per-group metrics" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="350" y="1440" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-75" value="&lt;div&gt;total_claims&lt;/div&gt;&lt;div&gt;published_claims&lt;/div&gt;&lt;div&gt;publish_rate (threat follow-through)&lt;/div&gt;&lt;div&gt;on_time_publish_rate&lt;/div&gt;" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="300" y="1530" width="200" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-76" value="&lt;b&gt;Per-Group Metrics&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="335" y="1620" width="130" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-86" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-77" target="pxxxRkzl_WgVJOpGTntx-78">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-87" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-77" target="pxxxRkzl_WgVJOpGTntx-79">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-77" value="Merge Group Features" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="520" y="1350" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-78" value="Join chat features with claim features" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="520" y="1440" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-97" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-79" target="pxxxRkzl_WgVJOpGTntx-88">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-99" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-79" target="pxxxRkzl_WgVJOpGTntx-94">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-104" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-79" target="pxxxRkzl_WgVJOpGTntx-103">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-79" value="Compute ACI Components" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="840" y="1350" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-84" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.555;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-74" target="pxxxRkzl_WgVJOpGTntx-75">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-100" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-88" target="pxxxRkzl_WgVJOpGTntx-91">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-88" value="Compute R (Reliability)" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="670" y="1470" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-91" value="Weighted mean of sample_offer_rate and key_delivery_rate" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="670" y="1560" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-101" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-92" target="pxxxRkzl_WgVJOpGTntx-93">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-92" value="Compute T (Threat Follow Through)" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="830" y="1470" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-93" value="Weighted mean of publish_rate and leak_threat_rate" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="830" y="1560" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-102" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-94" target="pxxxRkzl_WgVJOpGTntx-95">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-94" value="Compute I (Integrity)" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="985" y="1470" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-95" value="Weighted mean of violation_claim_rate, reextortion_rate, and data_resale_admission_rate" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="960" y="1560" width="170" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-98" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.582;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-79" target="pxxxRkzl_WgVJOpGTntx-92">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-106" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-103" target="pxxxRkzl_WgVJOpGTntx-105">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-108" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="pxxxRkzl_WgVJOpGTntx-103" target="pxxxRkzl_WgVJOpGTntx-107">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-103" value="Calculate Final ACI Score" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1155" y="1350" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-105" value="ACI = 0.4*R + 0.3*T + 0.3*I" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1155" y="1460" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="pxxxRkzl_WgVJOpGTntx-107" value="Output scores to aci_scores.csv" style="whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1330" y="1350" width="120" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
