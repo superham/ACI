@@ -41,15 +41,18 @@ def load_chat_features(path: str) -> pd.DataFrame:
     df = pd.read_csv(path)
     if "group" not in df.columns:
         raise ValueError("chat_features.csv must contain a 'group' column.")
+    df["group"] = df["group"].astype(str).str.strip().str.lower()
     return df
 
 
-def compute_chat_group_features(df_chat: pd.DataFrame) -> pd.DataFrame:
+def compute_chat_group_features(df_chat: pd.DataFrame, by_year: bool = False) -> pd.DataFrame:
     """
     Aggregate chat-level semantic features to one row per ransomware group.
-
+    If by_year=True, creates one row per (group, year) combination.
+    
     Returns a DataFrame with columns like:
       - group
+      - year (if by_year=True)
       - n_chats
       - n_paid_chats
       - sample_offer_rate
@@ -75,8 +78,18 @@ def compute_chat_group_features(df_chat: pd.DataFrame) -> pd.DataFrame:
     ]
     has_col = {c: c in df_chat.columns for c in optional_any_cols}
 
-    for group, sub in df_chat.groupby("group"):
-        row: dict[str, Optional[float]] = {"group": group}
+    # Determine grouping columns
+    group_cols = ["group", "year"] if by_year and "year" in df_chat.columns else ["group"]
+    
+    for group_key, sub in df_chat.groupby(group_cols):
+        row: dict[str, Optional[float]] = {}
+        
+        # Handle tuple vs single value for group key
+        if isinstance(group_key, tuple) and len(group_key) > 1:
+            row["group"] = str(group_key[0])
+            row["year"] = group_key[1]
+        else:
+            row["group"] = str(group_key) if not isinstance(group_key, tuple) else str(group_key[0])
 
         n_chats = len(sub)
         row["n_chats"] = int(n_chats)
@@ -165,9 +178,10 @@ def load_claims(path: str) -> pd.DataFrame:
     return df
 
 
-def compute_claim_group_features(df_claims: pd.DataFrame) -> pd.DataFrame:
+def compute_claim_group_features(df_claims: pd.DataFrame, by_year: bool = False) -> pd.DataFrame:
     """
     Aggregate ransomware.live claims to one row per group.
+    If by_year=True, creates one row per (group, year) combination based on claim_date.
 
     Features:
       - total_claims
@@ -186,9 +200,23 @@ def compute_claim_group_features(df_claims: pd.DataFrame) -> pd.DataFrame:
         if col in df_claims.columns:
             df_claims[col] = pd.to_datetime(df_claims[col], errors="coerce")
 
+    # Extract year from claim_date for grouping
+    if by_year and "claim_date" in df_claims.columns:
+        df_claims["year"] = df_claims["claim_date"].dt.year
+
     records = []
-    for group, sub in df_claims.groupby("group"):
-        row: dict[str, Optional[float]] = {"group": group}
+    group_cols = ["group", "year"] if by_year and "year" in df_claims.columns else ["group"]
+    
+    for group_key, sub in df_claims.groupby(group_cols):
+        row: dict[str, Optional[float]] = {}
+        
+        # Handle tuple vs single value for group key
+        if isinstance(group_key, tuple) and len(group_key) > 1:
+            row["group"] = str(group_key[0])
+            row["year"] = group_key[1]
+        else:
+            row["group"] = str(group_key) if not isinstance(group_key, tuple) else str(group_key[0])
+            
         total = len(sub)
         row["total_claims"] = int(total)
 
@@ -227,17 +255,19 @@ def compute_claim_group_features(df_claims: pd.DataFrame) -> pd.DataFrame:
 def combine_group_features(
     df_chat_group: pd.DataFrame,
     df_claim_group: pd.DataFrame,
-    strict: bool = True, # disallows ACI computation if any group is missing two of three core features
+    strict: bool = True,
 ) -> pd.DataFrame:
     """
-    Merge chat-derived features and claim-derived features on 'group'.
+    Merge chat-derived features and claim-derived features on 'group' (and 'year' if present).
 
     Returns a single DataFrame per group with all intermediate features that
     scoring.py will use to build the ACI.
     """
-
-    # TODO use strict
-
-    df = pd.merge(df_chat_group, df_claim_group, on="group", how="outer", suffixes=("_chat", "_claims"))
-    # Sort groups alphabetically for sanity
-    return df.sort_values("group").reset_index(drop=True)
+    # Determine merge columns
+    merge_on = ["group", "year"] if "year" in df_chat_group.columns or "year" in df_claim_group.columns else ["group"]
+    
+    df = pd.merge(df_chat_group, df_claim_group, on=merge_on, how="outer", suffixes=("_chat", "_claims"))
+    
+    # Sort groups (and years) alphabetically for sanity
+    sort_cols = ["group", "year"] if "year" in df.columns else ["group"]
+    return df.sort_values(sort_cols).reset_index(drop=True)

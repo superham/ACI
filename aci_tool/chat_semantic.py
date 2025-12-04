@@ -127,6 +127,31 @@ def extract_chat_features(chat: Mapping[str, Any]) -> Dict[str, Any]:
     meta = chat.get("meta") or {}
     features["message_count"] = meta.get("message_count")
 
+    # Extract year from chat timestamp or chat_id
+    year = None
+    started_at = chat.get("started_at")
+    if started_at and started_at.strip():
+        try:
+            from dateutil import parser as dt_parser
+            dt = dt_parser.parse(started_at)
+            year = dt.year
+        except:
+            pass
+    
+    # If no started_at, try to extract year from chat_id (format: YYYYMMDD)
+    if year is None:
+        chat_id = chat.get("chat_id", "")
+        if chat_id and len(chat_id) >= 4:
+            try:
+                year_candidate = int(chat_id[:4])
+                # Validate year is reasonable (2000-2030)
+                if 2000 <= year_candidate <= 2030:
+                    year = year_candidate
+            except (ValueError, TypeError):
+                pass
+    
+    features["year"] = year
+
     # Meta ransom behavior
     init_amt = parse_amount(meta.get("initialransom"))
     nego_amt = parse_amount(meta.get("negotiatedransom"))

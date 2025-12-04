@@ -244,12 +244,22 @@ def compute_aci(df_group: pd.DataFrame) -> pd.DataFrame:
 def compute_aci_from_files(
     chat_features_path: str,
     claims_path: str,
+    by_year: bool = False,
+    as_of_year: Optional[int] = None,
 ) -> pd.DataFrame:
     """
     High-level helper: read chat_features.csv and ransomware_live.jsonl,
     build group-level features, and compute ACI for each group.
+    
+    Args:
+        chat_features_path: Path to chat_features.csv
+        claims_path: Path to ransomware_live.jsonl
+        by_year: If True, compute separate ACI scores per year
+        as_of_year: If provided, compute cumulative scores up to this year
+    
+    Returns:
+        DataFrame with ACI scores (per group or per group-year)
     """
-    # TODO: move out of function?
     from .compute import (
         load_chat_features,
         compute_chat_group_features,
@@ -258,12 +268,36 @@ def compute_aci_from_files(
         combine_group_features,
     )
 
+    # Load data
     df_chat = load_chat_features(chat_features_path)
-    df_chat_group = compute_chat_group_features(df_chat)
-
     df_claims = load_claims(claims_path)
-    df_claim_group = compute_claim_group_features(df_claims)
-
+    
+    # Filter by as_of_year if specified
+    if as_of_year is not None:
+        if "year" in df_chat.columns:
+            df_chat = df_chat[df_chat["year"] <= as_of_year]
+        if "claim_date" in df_claims.columns:
+            df_claims["year"] = pd.to_datetime(df_claims["claim_date"], errors="coerce").dt.year
+            df_claims = df_claims[df_claims["year"] <= as_of_year]
+    
+    # Compute group features
+    df_chat_group = compute_chat_group_features(df_chat, by_year=by_year)
+    df_claim_group = compute_claim_group_features(df_claims, by_year=by_year)
+    
+    # Combine and compute ACI
     df_group = combine_group_features(df_chat_group, df_claim_group)
     df_aci = compute_aci(df_group)
+    
+    # If by_year, also compute cumulative totals
+    if by_year and "year" in df_aci.columns:
+        # Compute overall totals across all years
+        df_total = compute_chat_group_features(df_chat, by_year=False)
+        df_total_claims = compute_claim_group_features(df_claims, by_year=False)
+        df_total_group = combine_group_features(df_total, df_total_claims)
+        df_total_aci = compute_aci(df_total_group)
+        df_total_aci["year"] = "TOTAL"
+        
+        # Combine year-by-year with totals
+        df_aci = pd.concat([df_aci, df_total_aci], ignore_index=True)
+    
     return df_aci

@@ -49,6 +49,7 @@ def cmd_collect(args):
 
 # Command: extract chat features from negotiations.jsonl
 def cmd_chat_features(args):
+    print("[ACI] Processing chat features... This may take a couple of minutes.")
     rows = list(extract_chat_features_from_jsonl(args.input))
     df = pd.DataFrame(rows)
     df.to_csv(args.out, index=False)
@@ -59,11 +60,11 @@ def cmd_score_aci(args):
     """
     Compute the Attacker Credibility Index (ACI) per group and write to CSV.
     """
-
-
     df = compute_aci_from_files(
         chat_features_path=args.chat_features,
         claims_path=args.claims,
+        by_year=args.by_year,
+        as_of_year=args.as_of_year,
     )
     # Save as CSV
     df.to_csv(args.out, index=False)
@@ -96,7 +97,16 @@ def main():
     pc.add_argument("--chat-features", required=True, help="Path to chat_features.csv") # TODO: make this a relative path
     pc.add_argument("--claims", required=True, help="Path to ransomware_live.jsonl") # TODO: make this a relative path
     pc.add_argument("--out", required=True, help="Where to write ACI scores (CSV)")
+    pc.add_argument("--by-year", action="store_true", help="Compute ACI scores per year")
+    pc.add_argument("--as-of-year", type=int, help="Compute ACI scores up to and including this year (e.g., 2020)")
     pc.set_defaults(func=cmd_score_aci)
+
+    # # compute ACI per group
+    # pc = sub.add_parser("compute-aci-group")
+    # pc.add_argument("--chat-features", required=True, help="Path to chat_features.csv") # TODO: make this a relative path
+    # pc.add_argument("--claims", required=True, help="Path to ransomware_live.jsonl")
+    # pc.add_argument("--out", required=True, help="Where to write ACI scores (CSV)")
+    # pc.set_defaults(func=cmd_score_aci)
 
     args = p.parse_args()
     args.func(args)
