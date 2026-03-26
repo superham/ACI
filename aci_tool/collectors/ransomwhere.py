@@ -12,12 +12,9 @@ def fetch_payments():
         r = requests.get(DUMP, timeout=30)
         r.raise_for_status()
         data = r.json()
-    except Exception: # TODO - no need to catch the failed request for full releae
-        sample_path = os.path.join("data", "raw", "ransomwhere_sample.json")
-        data = json.load(open(sample_path)) if os.path.exists(sample_path) else []
-        
-        if (not data):
-            print("[RWHERE] No data available" ) # TODO: make this more verbose
+    except Exception as e:
+        print(f"[RWHERE] Error fetching payments: {e}")
+        data = []
 
     out = []
     # The API returns {"result": [...]} wrapper

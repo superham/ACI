@@ -18,26 +18,17 @@ def fetch_claims(api_key: Optional[str], since: Optional[str] = None) -> List[Cl
     url = f"{BASE}{VICTIMS_RECENT_PATH}"
     try:
         r = requests.get(url, headers=headers, params=params, timeout=30)
-        print("[RLIVE PRO] status:", r.status_code) # TODO: remove prints / clean up
-        print("[RLIVE PRO] snippet:", r.text[:200]) # TODO: smart check for missing api key here
-        
-        if (r.status_code == 401):
-            raise Exception("Check your API key")
+        if r.status_code == 401:
+            raise Exception("Authentication failed — check your RLIVE_API_KEY")
 
         r.raise_for_status()
         data = r.json()
     except Exception as e:
-        print("[RLIVE PRO] ERROR:", repr(e))
-        sample_path = os.path.join("data", "raw", "ransomware_live_sample.json")
-        if os.path.exists(sample_path):
-            print("[RLIVE PRO] Falling back to sample:", sample_path)
-            data = json.load(open(sample_path))
-        else:
-            data = []
+        print(f"[RLIVE] Error fetching claims: {e}")
+        data = []
 
     claims: List[Claim] = []
     rows = data.get("victims", []) if isinstance(data, dict) else data
-    print(f"[RLIVE PRO] victims in response: {len(rows)}")
 
     for row in rows:
         claims.append(Claim(

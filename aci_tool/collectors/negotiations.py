@@ -15,22 +15,15 @@ def fetch_negotiation_groups(api_key: str):
     headers = {"User-Agent": "ACI-Toolkit/0.1", "X-API-KEY": api_key}
     url = f"{BASE}/negotiations"
     r = requests.get(url, headers=headers, timeout=30)
-    print("[NEGOTIATIONS] groups status:", r.status_code)
     r.raise_for_status()
-    data = r.json()
-    
-    print (f"[NEGOTIATIONS] groups in response: {len(data)}")
-    # print(data)
-    return data
+    return r.json()
 
 # Call /negotiations/{group} to list chat metadata for that group.
 def fetch_group_chats(api_key: str, group: str):
     headers = {"User-Agent": "ACI-Toolkit/0.1", "X-API-KEY": api_key}
     url = f"{BASE}/negotiations/{group}"
     r = requests.get(url, headers=headers, timeout=30)
-    print(f"[NEGOTIATIONS] {group} chats status:", r.status_code)
-    if r.status_code == 404: # Not sure why it is returning this value tbh TODO investigate later
-        print(f"[NEGOTIATIONS] {group} has no chats (404), skipping.")
+    if r.status_code == 404:
         return []
     r.raise_for_status()
     data = r.json()
@@ -49,7 +42,6 @@ def fetch_chat_detail(api_key: str, group: str, chat_id: str):
     headers = {"User-Agent": "ACI-Toolkit/0.1", "X-API-KEY": api_key}
     url = f"{BASE}/negotiations/{group}/{chat_id}"
     r = requests.get(url, headers=headers, timeout=30)
-    print(f"[NEGOTIATIONS] {group}/{chat_id} detail status:", r.status_code)
     r.raise_for_status()
     return r.json()
 
@@ -83,7 +75,6 @@ def fetch_negotiations(api_key: Optional[str], limit_groups: Optional[int] = Non
     records: List[Negotiation] = []
 
     for g in groups:
-        print(f"[NEGOTIATIONS] Fetching chats for group: {g}")
         chats_meta = fetch_group_chats(api_key, g)
         for chat in chats_meta:
             # Chat object has "id" field, not "chat_id"
@@ -118,7 +109,6 @@ def fetch_negotiations(api_key: Optional[str], limit_groups: Optional[int] = Non
             )
             records.append(rec)
 
-    print(f"[NEGOTIATIONS] collected {len(records)} chats across {len(groups)} groups.")
     return records
 
 

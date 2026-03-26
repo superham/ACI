@@ -1,37 +1,92 @@
 # Attacker Credibility Index (ACI)
 
-# Version 1.0
-
-# Created by Alex Kaariainen
+**Version 1.1** | Created by Alex Kaariainen
 
 Collect, normalize, and score ransomware groups for an **Attacker Credibility Index (ACI)**.
 
-Sources: Ransomware.live (claims), Ransomwhere (payments), more to be added...
+Scores groups on three axes (0–10 scale):
+- **R** (Reliability) — key delivery & decryption proof
+- **T** (Threat Follow-Through) — do they act on leak threats?
+- **I** (Integrity) — post-payment behavior, re-extortion signals
 
-## Quick start
+Sources: Ransomware.live (claims + negotiations), Ransomwhere (payments)
 
-Got to https://www.ransomware.live/api and get a free API key for the pro service
+## Install
 
 ```bash
-python -m venv .venv && source .venv/bin/activate # init of python env may differ
-pip install -r requirements.txt
+pip install -e ".[dev]"    # editable install with test deps
+export RLIVE_API_KEY="<your key>"   # get one at https://www.ransomware.live/api
+```
 
-# Set API Key
-export RLIVE_API_KEY="< insert key here >" # Do this for each instance of shell running the tool
+## Quick start — one command
 
-# Collect sample/real data
-python -m aci_tool.cli collect --since 2024-01-01 --neg-limit 24
+```bash
+# Full pipeline: collect → extract features → score
+aci run --since 2024-01-01
 
-# Gather data from negotiation data / chats
-python -m aci_tool.cli chat-features --input './data/raw/negotiations.jsonl' --out './data/processed/chat_features.csv'
+# Same, but output as JSON
+aci run --since 2024-01-01 --format json
 
-# Compute group-based ACI scores based on previously collected and gathered data
-python -m aci_tool.cli compute-aci --chat-features './data/processed/chat_features.csv' --claims './data/raw/ransomware_live.jsonl' --out './reports/aci_scores.csv'
+# Reuse previously collected data (skip API calls)
+aci run --skip-collect --format table
+```
 
-# Optional: Compute ACI scores year-by-year
-python -m aci_tool.cli compute-aci --chat-features './data/processed/chat_features.csv' --claims './data/raw/ransomware_live.jsonl' --out './reports/aci_scores_by_year.csv' --by-year
+## Step-by-step usage
 
-# Optional: Compute ACI scores up to a specific year (e.g., 2020)
-python -m aci_tool.cli compute-aci --chat-features './data/processed/chat_features.csv' --claims './data/raw/ransomware_live.jsonl' --out './reports/aci_scores_2020.csv' --as-of-year 2020
+```bash
+# 1. Collect raw data
+aci collect --since 2024-01-01
 
+# 2. Extract semantic features from negotiation chats
+aci chat-features
+
+# 3. Compute ACI scores
+aci compute-aci
+aci compute-aci --format table          # print to terminal
+aci compute-aci --format json --out reports/scores.json
+aci compute-aci --by-year               # year-by-year breakdown
+aci compute-aci --as-of-year 2023       # cumulative up to 2023
+```
+
+## Query a single group
+
+```bash
+aci query lockbit
+aci query "black basta" --by-year
+aci query conti --format json
+```
+
+## Output formats
+
+| Flag | Description |
+|------|-------------|
+| `--format csv` | CSV file (default) |
+| `--format json` | JSON array of records |
+| `--format table` | Pretty-printed terminal table |
+
+All commands use sensible default paths (`data/raw/`, `data/processed/`, `reports/`). Override with `--out`, `--claims`, `--chat-features`, `--payments` as needed.
+
+## Scoring methodology
+
+```
+ACI = (0.4 × R + 0.3 × T + 0.3 × I) × 10
+```
+
+Each score includes a **confidence** indicator (0–1) based on data volume (chat count, claim count, component coverage) and a **low_data** flag for groups with fewer than 2 negotiation chats.
+
+## Development
+
+```bash
+pip install -e ".[dev]"
+pytest tests/ -v
+```
+
+## Data flow
+
+```
+ransomware.live API ──→ claims.jsonl ──┐
+                   ──→ negotiations.jsonl ──→ chat_features.csv ──┐
+ransomwhere API ───→ ransomwhere.jsonl ──────────────────────────→├──→ ACI scores
+                                                                  │
+                                        claims.jsonl ─────────────┘
 ```
