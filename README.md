@@ -2,11 +2,11 @@
 
 **Version 1.1** | Created by Alex Kaariainen
 
-A quantitative framework for scoring ransomware groups on behavioral credibility. ACI collects operational data from public sources, extracts behavioral signals using NLP, and produces per-group credibility scores on a 0-10 scale. Designed for incident responders, ransom negotiation teams, and threat intelligence analysts who need to assess how credible a threat actor's promises and threats actually are.
+A quantitative framework for scoring ransomware groups on behavioral credibility. ACI collects operational data from public sources, extracts behavioral signals using NLP, and produces a per-group credibility score (ACI, 0-10 scale) derived from three behavioral axes (each 0-1). Designed for incident responders, ransom negotiation teams, and threat intelligence analysts who need to assess how credible a threat actor's promises and threats actually are.
 
 ## What ACI measures
 
-Scores are computed on three axes (each 0-10):
+Scores are computed on three axes (each 0-1):
 
 - **R (Reliability)** -- Do they deliver working decryptors after payment? Measures proof-of-decryption offers, key delivery signals, and evidence of a functional payment-to-decryption pipeline.
 - **T (Threat Follow-Through)** -- Do they act on their leak threats? Measures the rate at which threatened data publications actually occur and how often leak threats appear in negotiations.
