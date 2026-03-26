@@ -251,23 +251,82 @@ def compute_claim_group_features(df_claims: pd.DataFrame, by_year: bool = False)
     return pd.DataFrame.from_records(records)
 
 
-# COMBINE CHAT w/ CLAIM FEATURES → group-level feature table
+# PAYMENT FEATURES: aggregate ransomwhere.jsonl → per-group features
+def load_payments(path: str) -> pd.DataFrame:
+    """
+    Load ransomwhere.jsonl containing cryptocurrency payment data.
+
+    Expected columns:
+      - group (or family)
+      - amount_usd
+      - tx_count
+      - first_tx_at
+    """
+    df = pd.read_json(path, lines=True)
+    if df.empty:
+        return df
+    # Use 'group' if present, fall back to 'family'
+    if "group" not in df.columns and "family" in df.columns:
+        df["group"] = df["family"]
+    if "group" not in df.columns:
+        return pd.DataFrame()
+    df["group"] = df["group"].astype(str).str.strip().str.lower()
+    return df
+
+
+def compute_payment_group_features(df_payments: pd.DataFrame) -> pd.DataFrame:
+    """
+    Aggregate payment data to one row per group.
+
+    Features:
+      - total_payment_usd: sum of all known payments
+      - n_payment_addresses: count of unique addresses with transactions
+      - avg_payment_usd: average payment amount
+      - has_payment_data: 1 if any financial data exists (used as a signal
+        that this group actually receives payments, supporting Reliability)
+    """
+    if df_payments.empty or "group" not in df_payments.columns:
+        return pd.DataFrame(columns=["group"])
+
+    records = []
+    for group, sub in df_payments.groupby("group"):
+        total_usd = sub["amount_usd"].sum() if "amount_usd" in sub.columns else 0
+        n_addrs = sub["address"].nunique() if "address" in sub.columns else 0
+        n_txs = sub["tx_count"].sum() if "tx_count" in sub.columns else 0
+        avg_usd = sub["amount_usd"].mean() if "amount_usd" in sub.columns else np.nan
+
+        records.append({
+            "group": str(group),
+            "total_payment_usd": float(total_usd),
+            "n_payment_addresses": int(n_addrs),
+            "total_tx_count": int(n_txs),
+            "avg_payment_usd": float(avg_usd) if pd.notna(avg_usd) else np.nan,
+            "has_payment_data": 1 if total_usd > 0 else 0,
+        })
+
+    return pd.DataFrame.from_records(records)
+
+
+# COMBINE CHAT + CLAIM + PAYMENT FEATURES → group-level feature table
 def combine_group_features(
     df_chat_group: pd.DataFrame,
     df_claim_group: pd.DataFrame,
-    strict: bool = True,
+    df_payment_group: Optional[pd.DataFrame] = None,
 ) -> pd.DataFrame:
     """
-    Merge chat-derived features and claim-derived features on 'group' (and 'year' if present).
+    Merge chat-derived, claim-derived, and payment-derived features on 'group'
+    (and 'year' if present).
 
     Returns a single DataFrame per group with all intermediate features that
     scoring.py will use to build the ACI.
     """
-    # Determine merge columns
     merge_on = ["group", "year"] if "year" in df_chat_group.columns or "year" in df_claim_group.columns else ["group"]
-    
+
     df = pd.merge(df_chat_group, df_claim_group, on=merge_on, how="outer", suffixes=("_chat", "_claims"))
-    
-    # Sort groups (and years) alphabetically for sanity
+
+    # Merge payment features (payments aren't per-year, so always merge on group only)
+    if df_payment_group is not None and not df_payment_group.empty and "group" in df_payment_group.columns:
+        df = pd.merge(df, df_payment_group, on="group", how="left")
+
     sort_cols = ["group", "year"] if "year" in df.columns else ["group"]
     return df.sort_values(sort_cols).reset_index(drop=True)
