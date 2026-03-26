@@ -2,14 +2,27 @@
 
 **Version 1.1** | Created by Alex Kaariainen
 
-Collect, normalize, and score ransomware groups for an **Attacker Credibility Index (ACI)**.
+A quantitative framework for scoring ransomware groups on behavioral credibility. ACI collects operational data from public sources, extracts behavioral signals using NLP, and produces a per-group credibility score (ACI, 0-10 scale) derived from three behavioral axes (each 0-1). Designed for incident responders, ransom negotiation teams, and threat intelligence analysts who need to assess how credible a threat actor's promises and threats actually are.
 
-Scores groups on three axes (0–10 scale):
-- **R** (Reliability) — key delivery & decryption proof
-- **T** (Threat Follow-Through) — do they act on leak threats?
-- **I** (Integrity) — post-payment behavior, re-extortion signals
+## What ACI measures
 
-Sources: Ransomware.live (claims + negotiations), Ransomwhere (payments)
+Scores are computed on three axes (each 0-1):
+
+- **R (Reliability)** -- Do they deliver working decryptors after payment? Measures proof-of-decryption offers, key delivery signals, and evidence of a functional payment-to-decryption pipeline.
+- **T (Threat Follow-Through)** -- Do they act on their leak threats? Measures the rate at which threatened data publications actually occur and how often leak threats appear in negotiations.
+- **I (Integrity)** -- Do they honor post-payment promises? Inversely measures re-extortion behavior, data resale admissions, and victim accusations of broken promises.
+
+**Composite score:** `ACI = (0.4 x R + 0.3 x T + 0.3 x I) x 10`
+
+Higher ACI = more credible (and therefore more dangerous) threat actor.
+
+**Data sources:** [ransomware.live](https://www.ransomware.live) (claims + negotiation chats), [ransomwhere.re](https://ransomwhe.re) (cryptocurrency payments)
+
+## Prerequisites
+
+- Python >= 3.10
+- A ransomware.live API key (get one at <https://www.ransomware.live/api>)
+- On first run, the `all-MiniLM-L6-v2` sentence-transformer model (~80 MB) is downloaded automatically. This requires PyTorch, which is installed as a dependency.
 
 ## Install
 
@@ -18,10 +31,10 @@ pip install -e ".[dev]"    # editable install with test deps
 export RLIVE_API_KEY="<your key>"   # get one at https://www.ransomware.live/api
 ```
 
-## Quick start — one command
+## Quick start -- one command
 
 ```bash
-# Full pipeline: collect → extract features → score
+# Full pipeline: collect -> extract features -> score
 aci run --since 2024-01-01
 
 # Same, but output as JSON
@@ -66,13 +79,108 @@ aci query conti --format json
 
 All commands use sensible default paths (`data/raw/`, `data/processed/`, `reports/`). Override with `--out`, `--claims`, `--chat-features`, `--payments` as needed.
 
+## How it works
+
+1. **Collect** -- Pulls ransomware victim claims and full negotiation chat logs from the ransomware.live API, plus cryptocurrency payment data from ransomwhere.re. Raw data is saved as JSONL files in `data/raw/`.
+
+2. **Extract features** -- Each negotiation chat message is embedded using a sentence-transformer model (`all-MiniLM-L6-v2`) and compared via cosine similarity against hand-crafted prototype sentences for behavioral categories: proof offers, key delivery, leak threats, deletion promises, re-extortion signals, and more. This produces per-chat feature flags, saved to `data/processed/chat_features.csv`.
+
+3. **Score** -- Chat-derived behavioral rates are aggregated to the group level, then combined with claim-level statistics (publish rates, deadline adherence) and payment data. The three axis scores (R, T, I) are computed as weighted means of their components, then combined into the final ACI composite. Each score includes a confidence metric and a low-data flag.
+
 ## Scoring methodology
 
+### Reliability (R)
+
+Weighted mean of:
+
+| Component | Weight | Source | Description |
+|-----------|--------|--------|-------------|
+| `sample_offer_rate` | 0.4 | Chat semantics | How often the group offers free test decryption |
+| `key_delivery_rate` | 0.4 | Chat semantics | How often they reference sending a decryptor/key |
+| `has_payment_data` | 0.2 | ransomwhere.re | Whether confirmed payments exist (proxy for functional payment pipeline) |
+
+### Threat Follow-Through (T)
+
+Weighted mean of:
+
+| Component | Weight | Source | Description |
+|-----------|--------|--------|-------------|
+| `publish_rate` | 0.5 | Claims data | Share of claims that resulted in a data publication |
+| `leak_threat_rate` | 0.5 | Chat semantics | How often leak threats appear in negotiation chats |
+| `on_time_publish_rate` | 0.2 | Claims data | Bonus for publishing on or before stated deadline (if available) |
+
+### Integrity (I)
+
+`I = 1 - bad_score`, where `bad_score` is the weighted mean of:
+
+| Component | Weight | Source | Description |
+|-----------|--------|--------|-------------|
+| `violation_claim_rate` | 0.4 | Chat semantics | Victim accusations of broken promises |
+| `reextortion_behavior_rate` | 0.4 | Chat semantics | Signals of post-payment re-extortion |
+| `data_resale_admission_rate` | 0.2 | Chat semantics | Admissions of selling or sharing stolen data |
+
+### Confidence
+
+A heuristic confidence score (0-1) based on data volume:
+
+- **Chat confidence** -- saturates at 10+ negotiation chats per group
+- **Claim confidence** -- saturates at 50+ claims per group
+- **Component coverage** -- fraction of R, T, I that are non-NaN
+
+Blended as: `confidence = 0.4 x chat_conf + 0.3 x claim_conf + 0.3 x coverage`
+
+Groups with fewer than 2 negotiation chats are flagged with `low_data=1`.
+
+All calculations are NaN-safe: missing components are skipped and weights are renormalized over available data.
+
+## Data flow
+
 ```
-ACI = (0.4 × R + 0.3 × T + 0.3 × I) × 10
+                       ransomware.live API
+                      /                    \
+                     v                      v
+            claims.jsonl            negotiations.jsonl
+                 |                          |
+                 |                 sentence-transformers
+                 |                  (all-MiniLM-L6-v2)
+                 |                          |
+                 |                          v
+                 |                  chat_features.csv
+                 |                          |
+                 v                          v
+             +--------------------------------------+
+             |        Feature Aggregation           |<-- ransomwhere.jsonl <-- ransomwhere.re API
+             |        (group-level rates)           |
+             +------------------+-------------------+
+                                |
+                                v
+                      +-------------------+
+                      |   ACI Scoring     |
+                      |   R, T, I -> ACI  |
+                      +--------+----------+
+                               |
+                               v
+                    reports/aci_scores.csv
 ```
 
-Each score includes a **confidence** indicator (0–1) based on data volume (chat count, claim count, component coverage) and a **low_data** flag for groups with fewer than 2 negotiation chats.
+## Project structure
+
+```
+aci_tool/
+├── cli.py                      # CLI entry point (5 subcommands)
+├── config.py                   # API keys, default paths
+├── schemas.py                  # Pydantic models: Claim, Payment, Negotiation
+├── compute.py                  # Feature aggregation (chat/claims/payments -> group-level)
+├── scoring.py                  # ACI scoring algorithm (R, T, I, confidence)
+├── chat_semantic.py            # Sentence-transformer feature extraction
+├── utils.py                    # Shared helpers
+├── collectors/
+│   ├── ransomware_live.py      # ransomware.live API client (claims)
+│   ├── ransomwhere.py          # ransomwhere.re API client (payments)
+│   └── negotiations.py         # Negotiation chat fetcher
+└── prototypes/
+    └── chat_semantic_proto.py  # Prototype sentences for semantic classification
+```
 
 ## Development
 
@@ -81,12 +189,8 @@ pip install -e ".[dev]"
 pytest tests/ -v
 ```
 
-## Data flow
+Tests cover the scoring algorithm, feature aggregation, and semantic extraction modules.
 
-```
-ransomware.live API ──→ claims.jsonl ──┐
-                   ──→ negotiations.jsonl ──→ chat_features.csv ──┐
-ransomwhere API ───→ ransomwhere.jsonl ──────────────────────────→├──→ ACI scores
-                                                                  │
-                                        claims.jsonl ─────────────┘
-```
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
