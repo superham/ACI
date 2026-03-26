@@ -8,17 +8,27 @@ from aci_tool.chat_semantic import (
     extract_chat_features,
 )
 
+import os
+
 _model_available = False
 try:
     from sentence_transformers import SentenceTransformer
-    SentenceTransformer("all-MiniLM-L6-v2")
-    _model_available = True
+    # Only check local cache — don't trigger a network download at import time
+    cache_dir = os.path.join(
+        os.getenv("HF_HOME", os.path.join(os.path.expanduser("~"), ".cache", "huggingface")),
+        "hub",
+    )
+    # If the model dir exists in cache, it's safe to load
+    model_dirs = [d for d in os.listdir(cache_dir) if "all-MiniLM-L6-v2" in d] if os.path.isdir(cache_dir) else []
+    if model_dirs or os.getenv("ACI_TEST_WITH_MODEL"):
+        SentenceTransformer("all-MiniLM-L6-v2")
+        _model_available = True
 except Exception:
     pass
 
 requires_model = pytest.mark.skipif(
     not _model_available,
-    reason="sentence-transformers model not available (no network or not cached)",
+    reason="sentence-transformers model not cached (set ACI_TEST_WITH_MODEL=1 to download)",
 )
 
 

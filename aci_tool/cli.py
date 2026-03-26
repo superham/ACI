@@ -28,17 +28,32 @@ def _ensure_dirs():
         os.makedirs(d, exist_ok=True)
 
 
+def _ensure_parent(path: str):
+    """Create parent directory for path, handling bare filenames safely."""
+    parent = os.path.dirname(path)
+    if parent:
+        os.makedirs(parent, exist_ok=True)
+
+
+def _require_file(path: str, label: str, hint: str):
+    """Exit with a clear message if a required input file is missing."""
+    if not os.path.exists(path):
+        sys.exit(f"[ACI] {label} not found at {path} — {hint}")
+
+
 # ── Output formatters ──────────────────────────────────────────────────
 def _output(df: pd.DataFrame, path: str, fmt: str):
     """Write a DataFrame to the requested format and print a summary."""
     if fmt == "json":
         if not path.endswith(".json"):
             path = path.rsplit(".", 1)[0] + ".json"
+        _ensure_parent(path)
         df.to_json(path, orient="records", indent=2)
     elif fmt == "table":
         print(df.to_string(index=False))
         return  # no file written
     else:  # csv (default)
+        _ensure_parent(path)
         df.to_csv(path, index=False)
     print(f"[ACI] Wrote {len(df)} rows → {path}")
 
@@ -79,7 +94,8 @@ def cmd_collect(args):
 def cmd_chat_features(args):
     inpath = args.input or DEFAULT_NEGOTIATIONS
     outpath = args.out or DEFAULT_CHAT_FEATURES
-    os.makedirs(os.path.dirname(outpath), exist_ok=True)
+    _require_file(inpath, "Negotiations file", "run 'aci collect' first.")
+    _ensure_parent(outpath)
     print("[ACI] Extracting chat features (this may take a few minutes)...")
     rows = list(extract_chat_features_from_jsonl(inpath))
     df = pd.DataFrame(rows)
@@ -92,7 +108,6 @@ def cmd_score_aci(args):
     claims = args.claims or DEFAULT_CLAIMS
     out = args.out or DEFAULT_ACI_OUT
     fmt = getattr(args, "format", "csv") or "csv"
-    os.makedirs(os.path.dirname(out), exist_ok=True)
 
     payments = getattr(args, "payments", None) or DEFAULT_PAYMENTS
     df = compute_aci_from_files(
@@ -122,6 +137,8 @@ def cmd_run(args):
         print(f"[ACI]   → {len(claims)} claims, {len(pays)} payments, {len(negs)} chats")
     else:
         print("[ACI] Step 1/3: Skipping collection (--skip-collect)")
+        _require_file(DEFAULT_NEGOTIATIONS, "Negotiations file", "run without --skip-collect first, or run 'aci collect'.")
+        _require_file(DEFAULT_CLAIMS, "Claims file", "run without --skip-collect first, or run 'aci collect'.")
 
     # Step 2: Chat features
     print("[ACI] Step 2/3: Extracting chat features...")
@@ -155,10 +172,8 @@ def cmd_query(args):
     claims = args.claims or DEFAULT_CLAIMS
     fmt = getattr(args, "format", "table") or "table"
 
-    if not os.path.exists(chat_feat):
-        sys.exit(f"[ACI] Chat features not found at {chat_feat} — run 'aci run' or 'aci chat-features' first.")
-    if not os.path.exists(claims):
-        sys.exit(f"[ACI] Claims not found at {claims} — run 'aci run' or 'aci collect' first.")
+    _require_file(chat_feat, "Chat features", "run 'aci run' or 'aci chat-features' first.")
+    _require_file(claims, "Claims data", "run 'aci run' or 'aci collect' first.")
 
     payments = getattr(args, "payments", None) or DEFAULT_PAYMENTS
     df = compute_aci_from_files(
@@ -205,12 +220,12 @@ def cmd_query(args):
 
 
 # ── Argument parser ────────────────────────────────────────────────────
-def _add_format_arg(parser):
+def _add_format_arg(parser, default="csv"):
     parser.add_argument(
         "--format", "-f",
         choices=["csv", "json", "table"],
-        default="csv",
-        help="Output format (default: csv)",
+        default=default,
+        help=f"Output format (default: {default})",
     )
 
 
@@ -260,9 +275,10 @@ def main():
     pq.add_argument("group", help="Group name (partial match, case-insensitive)")
     pq.add_argument("--chat-features", help=f"Path to chat_features.csv (default: {DEFAULT_CHAT_FEATURES})")
     pq.add_argument("--claims", help=f"Path to ransomware_live.jsonl (default: {DEFAULT_CLAIMS})")
+    pq.add_argument("--payments", help=f"Path to ransomwhere.jsonl (default: {DEFAULT_PAYMENTS})")
     pq.add_argument("--by-year", action="store_true", help="Show scores per year")
     pq.add_argument("--as-of-year", type=int, help="Show scores up to this year")
-    _add_format_arg(pq)
+    _add_format_arg(pq, default="table")
     pq.set_defaults(func=cmd_query)
 
     args = p.parse_args()
