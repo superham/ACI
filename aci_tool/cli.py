@@ -129,6 +129,11 @@ def cmd_score_aci(args):
     )
     _output(df, out, fmt)
 
+    verbose = getattr(args, "verbose", False)
+    if fmt == "table" or verbose:
+        print("\n\u2500\u2500 ACI Scores \u2500\u2500")
+        print(_display_cols(df, verbose=verbose).to_string(index=False))
+
 
 def cmd_run(args):
     """One-shot pipeline: collect \u2192 extract features \u2192 compute ACI."""
@@ -267,7 +272,7 @@ def cmd_web_export(args):
     write_dashboard_json(dashboard, out)
 
 
-# ── Argument parser ───────────────────────────────────────────────────────
+# ── Argument parser ─────────────────────────────────────────────────────
 def _add_format_arg(parser, default="csv"):
     parser.add_argument(
         "--format", "-f",
