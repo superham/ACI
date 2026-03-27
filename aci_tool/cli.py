@@ -7,10 +7,11 @@ from .collectors.ransomwhere import fetch_payments, dump_raw as dump_rwhere
 from .collectors.negotiations import fetch_negotiations, dump_raw_negotations
 from .chat_semantic import extract_chat_features_from_jsonl
 from .scoring import compute_aci_from_files
+from .web_export import generate_dashboard_json, write_dashboard_json
 
 load_dotenv()
 
-# ── Default paths ──────────────────────────────────────────────────────
+# ── Default paths ──────────────────────────────────────────────────────────
 DATA_DIR = "data"
 RAW_DIR = os.path.join(DATA_DIR, "raw")
 PROCESSED_DIR = os.path.join(DATA_DIR, "processed")
@@ -38,10 +39,10 @@ def _ensure_parent(path: str):
 def _require_file(path: str, label: str, hint: str):
     """Exit with a clear message if a required input file is missing."""
     if not os.path.exists(path):
-        sys.exit(f"[ACI] {label} not found at {path} — {hint}")
+        sys.exit(f"[ACI] {label} not found at {path} \u2014 {hint}")
 
 
-# ── Output formatters ──────────────────────────────────────────────────
+# ── Output formatters ──────────────────────────────────────────────────────
 def _output(df: pd.DataFrame, path: str, fmt: str):
     """Write a DataFrame to the requested format and print a summary."""
     if fmt == "json":
@@ -55,21 +56,30 @@ def _output(df: pd.DataFrame, path: str, fmt: str):
     else:  # csv (default)
         _ensure_parent(path)
         df.to_csv(path, index=False)
-    print(f"[ACI] Wrote {len(df)} rows → {path}")
+    print(f"[ACI] Wrote {len(df)} rows \u2192 {path}")
 
 
-# ── Score display columns ─────────────────────────────────────────────
+# ── Score display columns ───────────────────────────────────────────────────
 DISPLAY_COLS = [
     "group", "ACI", "R", "T", "I",
     "confidence", "low_data", "n_chats", "total_claims",
 ]
 
-def _display_cols(df: pd.DataFrame) -> pd.DataFrame:
+VERBOSE_COLS = DISPLAY_COLS + [
+    "sample_offer_rate", "key_delivery_rate", "leak_threat_rate",
+    "publish_rate", "on_time_publish_rate",
+    "violation_claim_rate", "reextortion_behavior_rate", "data_resale_admission_rate",
+    "discount_frequency", "discount_generosity",
+    "has_payment_data", "total_payment_usd",
+]
+
+def _display_cols(df: pd.DataFrame, verbose: bool = False) -> pd.DataFrame:
     """Select and round the standard display columns that exist in df."""
-    cols = [c for c in DISPLAY_COLS if c in df.columns]
+    col_list = VERBOSE_COLS if verbose else DISPLAY_COLS
+    cols = [c for c in col_list if c in df.columns]
     out = df[cols].copy()
-    for c in ["ACI", "R", "T", "I", "confidence"]:
-        if c in out.columns:
+    for c in out.columns:
+        if out[c].dtype in ("float64", "float32"):
             out[c] = out[c].round(2)
     return out.sort_values("ACI", ascending=False).reset_index(drop=True)
 
@@ -100,7 +110,7 @@ def cmd_chat_features(args):
     rows = list(extract_chat_features_from_jsonl(inpath))
     df = pd.DataFrame(rows)
     df.to_csv(outpath, index=False)
-    print(f"[ACI] Wrote {len(df)} chat feature rows → {outpath}")
+    print(f"[ACI] Wrote {len(df)} chat feature rows \u2192 {outpath}")
 
 
 def cmd_score_aci(args):
@@ -119,9 +129,14 @@ def cmd_score_aci(args):
     )
     _output(df, out, fmt)
 
+    verbose = getattr(args, "verbose", False)
+    if fmt == "table" or verbose:
+        print("\n\u2500\u2500 ACI Scores \u2500\u2500")
+        print(_display_cols(df, verbose=verbose).to_string(index=False))
+
 
 def cmd_run(args):
-    """One-shot pipeline: collect → extract features → compute ACI."""
+    """One-shot pipeline: collect \u2192 extract features \u2192 compute ACI."""
     _ensure_dirs()
 
     # Step 1: Collect
@@ -134,7 +149,7 @@ def cmd_run(args):
         dump_rwhere(pays, DEFAULT_PAYMENTS)
         negs = fetch_negotiations(cfg.rlive_api_key, limit_groups=args.neg_limit)
         dump_raw_negotations(negs, DEFAULT_NEGOTIATIONS)
-        print(f"[ACI]   → {len(claims)} claims, {len(pays)} payments, {len(negs)} chats")
+        print(f"[ACI]   \u2192 {len(claims)} claims, {len(pays)} payments, {len(negs)} chats")
     else:
         print("[ACI] Step 1/3: Skipping collection (--skip-collect)")
         _require_file(DEFAULT_NEGOTIATIONS, "Negotiations file", "run without --skip-collect first, or run 'aci collect'.")
@@ -145,7 +160,7 @@ def cmd_run(args):
     rows = list(extract_chat_features_from_jsonl(DEFAULT_NEGOTIATIONS))
     df_feats = pd.DataFrame(rows)
     df_feats.to_csv(DEFAULT_CHAT_FEATURES, index=False)
-    print(f"[ACI]   → {len(df_feats)} chat features extracted")
+    print(f"[ACI]   \u2192 {len(df_feats)} chat features extracted")
 
     # Step 3: Compute ACI
     print("[ACI] Step 3/3: Computing ACI scores...")
@@ -162,8 +177,9 @@ def cmd_run(args):
     _output(df, out, fmt)
 
     # Always print a summary table at the end
-    print("\n── ACI Scores ──")
-    print(_display_cols(df).to_string(index=False))
+    verbose = getattr(args, "verbose", False)
+    print("\n\u2500\u2500 ACI Scores \u2500\u2500")
+    print(_display_cols(df, verbose=verbose).to_string(index=False))
 
 
 def cmd_query(args):
@@ -210,7 +226,7 @@ def cmd_query(args):
     # Show detailed breakdown for single matches
     if len(matches) == 1:
         row = matches.iloc[0]
-        print(f"\n── Breakdown: {row['group']} ──")
+        print(f"\n\u2500\u2500 Breakdown: {row['group']} \u2500\u2500")
         print(f"  Reliability (R):        {row.get('R', 'N/A'):.2f}  (key delivery & decryption proof)")
         print(f"  Threat Follow-Through (T): {row.get('T', 'N/A'):.2f}  (leak threats acted on)")
         print(f"  Integrity (I):          {row.get('I', 'N/A'):.2f}  (post-payment behavior)")
@@ -219,7 +235,44 @@ def cmd_query(args):
             print(f"  Confidence:             {row['confidence']:.2f}  (based on {int(row.get('n_chats', 0))} chats, {int(row.get('total_claims', 0))} claims)")
 
 
-# ── Argument parser ────────────────────────────────────────────────────
+def cmd_web_export(args):
+    """Generate dashboard-ready JSON for the aci-web frontend."""
+    _ensure_dirs()
+
+    # Optionally run collection + feature extraction first
+    if not args.skip_collect:
+        print("[ACI] Step 1/3: Collecting data...")
+        cfg = Config(rlive_api_key=os.getenv("RLIVE_API_KEY"))
+        claims = fetch_claims(cfg.rlive_api_key, since=args.since)
+        dump_rlive(claims, DEFAULT_CLAIMS)
+        pays = fetch_payments()
+        dump_rwhere(pays, DEFAULT_PAYMENTS)
+        negs = fetch_negotiations(cfg.rlive_api_key, limit_groups=args.neg_limit)
+        dump_raw_negotations(negs, DEFAULT_NEGOTIATIONS)
+        print(f"[ACI]   \u2192 {len(claims)} claims, {len(pays)} payments, {len(negs)} chats")
+
+        print("[ACI] Step 2/3: Extracting chat features...")
+        rows = list(extract_chat_features_from_jsonl(DEFAULT_NEGOTIATIONS))
+        df_feats = pd.DataFrame(rows)
+        df_feats.to_csv(DEFAULT_CHAT_FEATURES, index=False)
+        print(f"[ACI]   \u2192 {len(df_feats)} chat features extracted")
+    else:
+        _require_file(DEFAULT_CHAT_FEATURES, "Chat features", "run without --skip-collect, or run 'aci run' first.")
+        _require_file(DEFAULT_CLAIMS, "Claims file", "run without --skip-collect, or run 'aci collect' first.")
+
+    print("[ACI] Step 3/3: Generating dashboard JSON...")
+    payments = DEFAULT_PAYMENTS if os.path.exists(DEFAULT_PAYMENTS) else None
+    dashboard = generate_dashboard_json(
+        chat_features_path=DEFAULT_CHAT_FEATURES,
+        claims_path=DEFAULT_CLAIMS,
+        payments_path=payments,
+    )
+
+    out = args.out or os.path.join(REPORTS_DIR, "dashboard.json")
+    write_dashboard_json(dashboard, out)
+
+
+# ── Argument parser ─────────────────────────────────────────────────────
 def _add_format_arg(parser, default="csv"):
     parser.add_argument(
         "--format", "-f",
@@ -232,18 +285,19 @@ def _add_format_arg(parser, default="csv"):
 def main():
     p = argparse.ArgumentParser(
         prog="aci",
-        description="Attacker Credibility Index — score ransomware groups on reliability, threat follow-through, and integrity.",
+        description="Attacker Credibility Index \u2014 score ransomware groups on reliability, threat follow-through, and integrity.",
     )
     sub = p.add_subparsers(dest="command")
 
     # ── run (one-shot pipeline) ──
-    pr = sub.add_parser("run", help="Full pipeline: collect → extract → score")
+    pr = sub.add_parser("run", help="Full pipeline: collect \u2192 extract \u2192 score")
     pr.add_argument("--since", help="ISO date filter for claims (e.g., 2024-01-01)")
     pr.add_argument("--neg-limit", type=int, default=24, help="Max negotiation groups to fetch")
     pr.add_argument("--skip-collect", action="store_true", help="Skip data collection, reuse existing data")
     pr.add_argument("--out", help=f"Output path (default: {DEFAULT_ACI_OUT})")
     pr.add_argument("--by-year", action="store_true", help="Compute scores per year")
     pr.add_argument("--as-of-year", type=int, help="Compute scores up to this year")
+    pr.add_argument("--verbose", "-v", action="store_true", help="Show all columns including rates and payment data")
     _add_format_arg(pr)
     pr.set_defaults(func=cmd_run)
 
@@ -267,8 +321,17 @@ def main():
     pa.add_argument("--out", help=f"Output path (default: {DEFAULT_ACI_OUT})")
     pa.add_argument("--by-year", action="store_true", help="Compute scores per year")
     pa.add_argument("--as-of-year", type=int, help="Compute scores up to this year")
+    pa.add_argument("--verbose", "-v", action="store_true", help="Show all columns including rates and payment data")
     _add_format_arg(pa)
     pa.set_defaults(func=cmd_score_aci)
+
+    # ── web-export ──
+    pw = sub.add_parser("web-export", help="Generate dashboard-ready JSON for the aci-web frontend")
+    pw.add_argument("--since", help="ISO date filter for claims (e.g., 2024-01-01)")
+    pw.add_argument("--neg-limit", type=int, default=24, help="Max negotiation groups to fetch")
+    pw.add_argument("--skip-collect", action="store_true", help="Skip collection, reuse existing data files")
+    pw.add_argument("--out", help=f"Output path (default: {REPORTS_DIR}/dashboard.json)")
+    pw.set_defaults(func=cmd_web_export)
 
     # ── query ──
     pq = sub.add_parser("query", help="Look up ACI score for a specific group")
