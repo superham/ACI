@@ -1,0 +1,61 @@
+name: Monthly ACI Dashboard Update
+
+on:
+  schedule:
+    # Run on the 1st of every month at 06:00 UTC
+    - cron: '0 6 1 * *'
+  workflow_dispatch:
+    inputs:
+      since_date:
+        description: 'ISO date filter for claims (e.g., 2020-01-01). Leave empty for default.'
+        required: false
+        default: ''
+
+jobs:
+  update-dashboard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout ACI tool
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -e .
+
+      - name: Run ACI web export
+        env:
+          RLIVE_API_KEY: ${{ secrets.RLIVE_API_KEY }}
+        run: |
+          SINCE_DATE="${{ github.event.inputs.since_date }}"
+          if [ -z "$SINCE_DATE" ]; then
+            SINCE_DATE="2020-01-01"
+          fi
+          aci web-export --since "$SINCE_DATE" --out dashboard.json
+
+      - name: Upload dashboard.json artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-json
+          path: dashboard.json
+          retention-days: 30
+
+      - name: Push to aci-web repository
+        env:
+          WEB_REPO_PAT: ${{ secrets.WEB_REPO_PAT }}
+        run: |
+          git clone https://x-access-token:${WEB_REPO_PAT}@github.com/superham/aci-web.git /tmp/aci-web
+          cp dashboard.json /tmp/aci-web/public/data/dashboard.json
+          cd /tmp/aci-web
+          git config user.name "ACI Bot"
+          git config user.email "aci-bot@users.noreply.github.com"
+          git add public/data/dashboard.json
+          git diff --cached --quiet && echo "No changes to commit" && exit 0
+          git commit -m "chore: update dashboard data ($(date +%Y-%m-%d))"
+          git push
