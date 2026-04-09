@@ -135,15 +135,14 @@ def compute_integrity(df_group: pd.DataFrame) -> pd.Series:
     """
     post-payment integrity per group [0, 1]
 
-    The v1 implementation relies on primarily on *semantic chat signals:
-      - deletion_promise_rate
+    The v1 implementation relies primarily on *semantic chat signals:
       - violation_claim_rate
       - reextortion_behavior_rate
       - data_resale_admission_rate
 
     Currently, there is no per-victim linkage (e.g. connecting that victim A was attacked, paid,
     and at a later date the attacker re-attacked / re-extorted that same victim).
-    This is a major limition of the curent tool. TODO
+    This is a major limitation of the current tool. TODO
 
     approximating integrity as:
       I = 1 - f(violation_claim_rate, reextortion_behavior_rate,

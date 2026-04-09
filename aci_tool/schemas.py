@@ -41,7 +41,7 @@ class Confirmation(BaseModel):
     extra: Dict[str, Any] = {}
 
 
-# NOTE: These are specific for ransomware.live pro and ransomwwhere api responses, will need to be generalized
+# NOTE: These are specific for ransomware.live pro and ransomwhere api responses, will need to be generalized
 
 
 class Negotiation(BaseModel):
