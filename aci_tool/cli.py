@@ -1,8 +1,10 @@
 import argparse
 import os
 import sys
+import traceback
 
 import pandas as pd
+import requests
 from dotenv import load_dotenv
 
 from .chat_semantic import extract_chat_features_from_jsonl
@@ -268,11 +270,19 @@ def cmd_web_export(args):
     if not args.skip_collect:
         print("[ACI] Step 1/3: Collecting data...")
         cfg = Config(rlive_api_key=os.getenv("RLIVE_API_KEY"))
-        claims = fetch_claims(cfg.rlive_api_key, since=args.since)
+        try:
+            claims = fetch_claims(cfg.rlive_api_key, since=args.since)
+            pays = fetch_payments()
+            negs = fetch_negotiations(cfg.rlive_api_key, limit_groups=args.neg_limit)
+        except requests.HTTPError as e:
+            print(f"[ACI] ERROR: HTTP request failed during data collection: {e}")
+            sys.exit(1)
+        except Exception as e:
+            print(f"[ACI] ERROR: Data collection failed ({type(e).__name__}): {e}")
+            traceback.print_exc()
+            sys.exit(1)
         dump_rlive(claims, DEFAULT_CLAIMS)
-        pays = fetch_payments()
         dump_rwhere(pays, DEFAULT_PAYMENTS)
-        negs = fetch_negotiations(cfg.rlive_api_key, limit_groups=args.neg_limit)
         dump_raw_negotations(negs, DEFAULT_NEGOTIATIONS)
         print(f"[ACI]   \u2192 {len(claims)} claims, {len(pays)} payments, {len(negs)} chats")
 
@@ -283,12 +293,11 @@ def cmd_web_export(args):
         print("[ACI] Step 2/3: Extracting chat features...")
         rows = list(extract_chat_features_from_jsonl(DEFAULT_NEGOTIATIONS))
         df_feats = pd.DataFrame(rows)
-        df_feats.to_csv(DEFAULT_CHAT_FEATURES, index=False)
-        print(f"[ACI]   \u2192 {len(df_feats)} chat features extracted")
-
         if len(df_feats) == 0:
             print("[ACI] ERROR: No chat features extracted — cannot generate dashboard.")
             sys.exit(1)
+        df_feats.to_csv(DEFAULT_CHAT_FEATURES, index=False)
+        print(f"[ACI]   \u2192 {len(df_feats)} chat features extracted")
     else:
         _require_file(DEFAULT_CHAT_FEATURES, "Chat features", "run without --skip-collect, or run 'aci run' first.")
         _require_file(DEFAULT_CLAIMS, "Claims file", "run without --skip-collect, or run 'aci collect' first.")

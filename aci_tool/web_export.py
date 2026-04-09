@@ -31,6 +31,13 @@ def _safe_round(val: Any, decimals: int = 2) -> Any:
         return val
 
 
+def _safe_int(val: Any, default: int = 0) -> int:
+    """Convert a value to int, returning default for None/NaN/pd.NA."""
+    if val is None or pd.isna(val):
+        return default
+    return int(val)
+
+
 def _apply_exclusion_criteria(
     df_total: pd.DataFrame,
     df_yearly: pd.DataFrame,
@@ -198,9 +205,9 @@ def _build_confidence_data(df_total: pd.DataFrame, qualifying_groups: list[str])
             {
                 "brand": str(row["group"]),
                 "confidence": _safe_round(row.get("confidence")),
-                "nChats": int(row.get("n_chats", 0) or 0),
-                "totalClaims": int(row.get("total_claims", 0) or 0),
-                "lowData": bool(row.get("low_data", 0)),
+                "nChats": _safe_int(row.get("n_chats")),
+                "totalClaims": _safe_int(row.get("total_claims")),
+                "lowData": bool(_safe_int(row.get("low_data"))),
             }
         )
     return sorted(results, key=lambda x: x["brand"])
@@ -260,8 +267,8 @@ def _build_group_details(
                 "t": _safe_round(row.get("T")),
                 "i": _safe_round(row.get("I")),
                 "confidence": _safe_round(row.get("confidence")),
-                "nChats": int(row.get("n_chats", 0) or 0),
-                "totalClaims": int(row.get("total_claims", 0) or 0),
+                "nChats": _safe_int(row.get("n_chats")),
+                "totalClaims": _safe_int(row.get("total_claims")),
                 "yearsActive": years_active,
                 "yearlyTrend": yearly_trend,
             }
