@@ -1,38 +1,24 @@
 name: Configure Repository Settings
 
+# Requires ADMIN_PAT secret: a Personal Access Token with 'repo' scope (including admin).
+# The built-in GITHUB_TOKEN does NOT have 'administration' permission needed for
+# PATCH /repos/{owner}/{repo}. Create a PAT at https://github.com/settings/tokens
+# and add it as a repository secret named ADMIN_PAT.
+#
+# Run manually: Actions tab -> Configure Repository Settings -> Run workflow
+
 on:
-  push:
-    paths:
-      - '.github/workflows/configure-repo-settings.yml'
   workflow_dispatch:
 
-permissions: write-all
-
 jobs:
-  configure-merge-settings:
+  configure:
     runs-on: ubuntu-latest
     steps:
-      - name: Show current settings
+      - name: Update repository settings
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.ADMIN_PAT }}
         run: |
-          echo "=== Current settings ==="
-          gh api repos/${{ github.repository }} --jq '{
-            delete_branch_on_merge: .delete_branch_on_merge,
-            allow_squash_merge: .allow_squash_merge,
-            allow_merge_commit: .allow_merge_commit,
-            allow_rebase_merge: .allow_rebase_merge,
-            squash_merge_commit_title: .squash_merge_commit_title,
-            squash_merge_commit_message: .squash_merge_commit_message,
-            allow_auto_merge: .allow_auto_merge,
-            security_and_analysis: .security_and_analysis
-          }'
-
-      - name: Update merge and branch settings
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "=== Updating merge and branch settings ==="
+          echo "=== Updating repository settings ==="
           gh api repos/${{ github.repository }} \
             --method PATCH \
             -F "delete_branch_on_merge=true" \
@@ -51,23 +37,33 @@ jobs:
               squash_merge_commit_message: .squash_merge_commit_message,
               allow_auto_merge: .allow_auto_merge
             }'
-          echo "=== Merge and branch settings updated ==="
+          echo "=== Repository settings updated ==="
 
       - name: Enable secret scanning
         continue-on-error: true
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.ADMIN_PAT }}
         run: |
           echo "=== Enabling secret scanning ==="
           gh api repos/${{ github.repository }} \
             --method PATCH \
-            -f 'security_and_analysis[secret_scanning][status]=enabled' \
-            -f 'security_and_analysis[secret_scanning_push_protection][status]=enabled' \
-            --jq '.security_and_analysis' || echo "Note: Secret scanning may require GitHub Advanced Security or a PAT with admin scope"
+            --input - <<'EOF'
+          {
+            "security_and_analysis": {
+              "secret_scanning": {
+                "status": "enabled"
+              },
+              "secret_scanning_push_protection": {
+                "status": "enabled"
+              }
+            }
+          }
+          EOF
+          echo "=== Secret scanning configuration complete ==="
 
       - name: Verify final settings
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.ADMIN_PAT }}
         run: |
           echo "=== Final Repository Settings ==="
           gh api repos/${{ github.repository }} --jq '{
@@ -80,4 +76,3 @@ jobs:
             allow_auto_merge: .allow_auto_merge,
             security_and_analysis: .security_and_analysis
           }'
-# Trigger: force re-run
