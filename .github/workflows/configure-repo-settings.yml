@@ -9,16 +9,13 @@ on:
 permissions: write-all
 
 jobs:
-  configure:
+  configure-merge-settings:
     runs-on: ubuntu-latest
     steps:
-      - name: Update repository merge settings
+      - name: Show current settings
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          set -x
-          
-          # First check current settings
           echo "=== Current settings ==="
           gh api repos/${{ github.repository }} --jq '{
             delete_branch_on_merge: .delete_branch_on_merge,
@@ -30,8 +27,12 @@ jobs:
             allow_auto_merge: .allow_auto_merge,
             security_and_analysis: .security_and_analysis
           }'
-          
-          echo "=== Updating settings ==="
+
+      - name: Update merge and branch settings
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "=== Updating merge and branch settings ==="
           gh api repos/${{ github.repository }} \
             --method PATCH \
             -F "delete_branch_on_merge=true" \
@@ -49,28 +50,20 @@ jobs:
               squash_merge_commit_title: .squash_merge_commit_title,
               squash_merge_commit_message: .squash_merge_commit_message,
               allow_auto_merge: .allow_auto_merge
-            }' && echo "Merge settings updated successfully" || echo "FAILED to update merge settings"
+            }'
+          echo "=== Merge and branch settings updated ==="
 
       - name: Enable secret scanning
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: true
         run: |
+          echo "=== Enabling secret scanning ==="
           gh api repos/${{ github.repository }} \
             --method PATCH \
-            --input - <<'EOF'
-          {
-            "security_and_analysis": {
-              "secret_scanning": {
-                "status": "enabled"
-              },
-              "secret_scanning_push_protection": {
-                "status": "enabled"
-              }
-            }
-          }
-          EOF
-          echo "Secret scanning configuration completed"
+            -f 'security_and_analysis[secret_scanning][status]=enabled' \
+            -f 'security_and_analysis[secret_scanning_push_protection][status]=enabled' \
+            --jq '.security_and_analysis' || echo "Note: Secret scanning may require GitHub Advanced Security or a PAT with admin scope"
 
       - name: Verify final settings
         env:
