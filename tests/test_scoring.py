@@ -221,8 +221,8 @@ class TestComputeACI:
         # Only I=1.0 present: ACI = (0.4*0 + 0.3*0 + 0.3*1.0) * 10 = 3.0
         assert result["ACI"].iloc[0] == pytest.approx(3.0)
 
-    def test_all_components_nan(self):
-        """When all components are NaN, ACI should be 0."""
+    def test_missing_r_t_with_default_integrity(self):
+        """When R and T are NaN, I defaults to 1.0 (no bad signals) and contributes 3.0 ACI."""
         df = pd.DataFrame(
             [
                 {
