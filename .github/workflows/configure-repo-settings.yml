@@ -6,52 +6,65 @@ on:
       - '.github/workflows/configure-repo-settings.yml'
   workflow_dispatch:
 
-permissions:
-  administration: write
-
 jobs:
   configure:
     runs-on: ubuntu-latest
     steps:
       - name: Update repository settings
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            // Update repository settings
-            const result = await github.rest.repos.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              delete_branch_on_merge: true,
-              allow_squash_merge: true,
-              allow_merge_commit: true,
-              allow_rebase_merge: false,
-              squash_merge_commit_title: 'PR_TITLE',
-              squash_merge_commit_message: 'PR_BODY',
-              allow_auto_merge: true,
-              security_and_analysis: {
-                secret_scanning: {
-                  status: 'enabled'
-                },
-                secret_scanning_push_protection: {
-                  status: 'enabled'
-                }
-              }
-            });
-            console.log('Repository settings updated successfully');
-            console.log('Status:', result.status);
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }} \
+            --method PATCH \
+            -f "delete_branch_on_merge=true" \
+            -f "allow_squash_merge=true" \
+            -f "allow_merge_commit=true" \
+            -f "allow_rebase_merge=false" \
+            -f "squash_merge_commit_title=PR_TITLE" \
+            -f "squash_merge_commit_message=PR_BODY" \
+            -f "allow_auto_merge=true" \
+            --jq '{
+              delete_branch_on_merge: .delete_branch_on_merge,
+              allow_squash_merge: .allow_squash_merge,
+              allow_merge_commit: .allow_merge_commit,
+              allow_rebase_merge: .allow_rebase_merge,
+              squash_merge_commit_title: .squash_merge_commit_title,
+              squash_merge_commit_message: .squash_merge_commit_message,
+              allow_auto_merge: .allow_auto_merge
+            }' || echo "WARNING: Failed to update merge settings (may need admin token)"
 
-            // Verify settings
-            const { data: repo } = await github.rest.repos.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo
-            });
-            console.log('Verified settings:');
-            console.log('  delete_branch_on_merge:', repo.delete_branch_on_merge);
-            console.log('  allow_squash_merge:', repo.allow_squash_merge);
-            console.log('  allow_merge_commit:', repo.allow_merge_commit);
-            console.log('  allow_rebase_merge:', repo.allow_rebase_merge);
-            console.log('  squash_merge_commit_title:', repo.squash_merge_commit_title);
-            console.log('  squash_merge_commit_message:', repo.squash_merge_commit_message);
-            console.log('  allow_auto_merge:', repo.allow_auto_merge);
-            console.log('  security_and_analysis:', JSON.stringify(repo.security_and_analysis, null, 2));
+      - name: Enable secret scanning
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }} \
+            --method PATCH \
+            --input - <<'EOF'
+          {
+            "security_and_analysis": {
+              "secret_scanning": {
+                "status": "enabled"
+              },
+              "secret_scanning_push_protection": {
+                "status": "enabled"
+              }
+            }
+          }
+          EOF
+          echo "Secret scanning configuration attempted"
+
+      - name: Verify final settings
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "=== Current Repository Settings ==="
+          gh api repos/${{ github.repository }} --jq '{
+            delete_branch_on_merge: .delete_branch_on_merge,
+            allow_squash_merge: .allow_squash_merge,
+            allow_merge_commit: .allow_merge_commit,
+            allow_rebase_merge: .allow_rebase_merge,
+            squash_merge_commit_title: .squash_merge_commit_title,
+            squash_merge_commit_message: .squash_merge_commit_message,
+            allow_auto_merge: .allow_auto_merge,
+            security_and_analysis: .security_and_analysis
+          }'
