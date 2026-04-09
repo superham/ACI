@@ -1,5 +1,6 @@
-import argparse, os, json, sys
+import argparse, os, json, sys, traceback
 import pandas as pd
+import requests
 from dotenv import load_dotenv
 from .config import Config
 from .collectors.ransomware_live import fetch_claims, dump_raw as dump_rlive
@@ -245,14 +246,18 @@ def cmd_web_export(args):
         cfg = Config(rlive_api_key=os.getenv("RLIVE_API_KEY"))
         try:
             claims = fetch_claims(cfg.rlive_api_key, since=args.since)
-            dump_rlive(claims, DEFAULT_CLAIMS)
             pays = fetch_payments()
-            dump_rwhere(pays, DEFAULT_PAYMENTS)
             negs = fetch_negotiations(cfg.rlive_api_key, limit_groups=args.neg_limit)
-            dump_raw_negotations(negs, DEFAULT_NEGOTIATIONS)
-        except Exception as e:
-            print(f"[ACI] ERROR: Data collection failed: {e}")
+        except requests.HTTPError as e:
+            print(f"[ACI] ERROR: HTTP request failed during data collection: {e}")
             sys.exit(1)
+        except Exception as e:
+            print(f"[ACI] ERROR: Data collection failed ({type(e).__name__}): {e}")
+            traceback.print_exc()
+            sys.exit(1)
+        dump_rlive(claims, DEFAULT_CLAIMS)
+        dump_rwhere(pays, DEFAULT_PAYMENTS)
+        dump_raw_negotations(negs, DEFAULT_NEGOTIATIONS)
         print(f"[ACI]   \u2192 {len(claims)} claims, {len(pays)} payments, {len(negs)} chats")
 
         if len(claims) == 0 and len(negs) == 0:

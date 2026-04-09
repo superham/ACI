@@ -15,6 +15,7 @@ from aci_tool.web_export import (
     _build_per_year_aci_values,
     _build_rti_values,
     _build_total_aci_values,
+    _safe_int,
     _safe_round,
 )
 
@@ -39,6 +40,55 @@ class TestSafeRound:
 
     def test_zero(self):
         assert _safe_round(0.0) == 0.0
+
+
+# ── _safe_int ───────────────────────────────────────────────────────────
+
+class TestSafeInt:
+    def test_normal_int(self):
+        assert _safe_int(5) == 5
+
+    def test_normal_float(self):
+        assert _safe_int(3.9) == 3
+
+    def test_python_nan(self):
+        assert _safe_int(float("nan")) == 0
+
+    def test_numpy_nan(self):
+        assert _safe_int(np.nan) == 0
+
+    def test_numpy_float64_nan(self):
+        assert _safe_int(np.float64("nan")) == 0
+
+    def test_none(self):
+        assert _safe_int(None) == 0
+
+    def test_pd_na(self):
+        assert _safe_int(pd.NA) == 0
+
+    def test_custom_default(self):
+        assert _safe_int(None, default=-1) == -1
+
+    def test_zero(self):
+        assert _safe_int(0) == 0
+
+
+# ── _build_confidence_data with NaN ──────────────────────────────────
+
+class TestBuildConfidenceDataNaN:
+    def test_nan_fields_dont_crash(self):
+        df = pd.DataFrame({
+            "group": ["alpha"],
+            "confidence": [0.85],
+            "n_chats": [np.nan],
+            "total_claims": [np.nan],
+            "low_data": [np.nan],
+        })
+        result = _build_confidence_data(df, ["alpha"])
+        assert len(result) == 1
+        assert result[0]["nChats"] == 0
+        assert result[0]["totalClaims"] == 0
+        assert result[0]["lowData"] is False
 
 
 # ── _apply_exclusion_criteria ──────────────────────────────────────────

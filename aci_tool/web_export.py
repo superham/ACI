@@ -32,8 +32,8 @@ def _safe_round(val: Any, decimals: int = 2) -> Any:
 
 
 def _safe_int(val: Any, default: int = 0) -> int:
-    """Convert a value to int, returning default for None/NaN."""
-    if val is None or (isinstance(val, float) and np.isnan(val)):
+    """Convert a value to int, returning default for None/NaN/pd.NA."""
+    if val is None or pd.isna(val):
         return default
     return int(val)
 
