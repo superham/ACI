@@ -133,6 +133,31 @@ Groups with fewer than 2 negotiation chats are flagged with `low_data=1`.
 
 All calculations are NaN-safe: missing components are skipped and weights are renormalized over available data.
 
+## Web dashboard
+
+ACI scores are published to an interactive web dashboard built with React. The dashboard lets users explore scores, filter by confidence, drill into individual groups, and view year-over-year trends.
+
+### Monthly data flow
+
+A GitHub Actions workflow (`.github/workflows/monthly-update.yml`) runs on the 1st of each month:
+
+1. **Collect** -- fetches the latest claims, negotiation chats, and payment data from APIs
+2. **Score** -- runs the full pipeline (`aci web-export`) to produce `dashboard.json`
+3. **Push** -- commits the updated `dashboard.json` to the `aci-web` repo at `public/data/dashboard.json`
+
+The web dashboard loads this static JSON file at runtime -- no backend API is required. The workflow can also be triggered manually via `workflow_dispatch` if an ad-hoc refresh is needed.
+
+### Export command
+
+```bash
+# Generate dashboard-ready JSON for the web frontend
+aci web-export --since 2020-01-01 --out dashboard.json
+```
+
+The `--out` path defaults to `reports/dashboard.json`; the monthly GitHub Action overrides it to write `dashboard.json` at the repo root for copying into the web repo.
+
+The export applies inclusion criteria (groups need 2+ years of data with 1+ negotiation transcript per year) so only sufficiently-documented groups appear on the dashboard. The output includes overview stats, per-group R/T/I breakdowns, yearly trends, confidence data, and outcome metrics.
+
 ## Data flow
 
 ```
@@ -159,20 +184,32 @@ All calculations are NaN-safe: missing components are skipped and weights are re
                       |   R, T, I -> ACI  |
                       +--------+----------+
                                |
-                               v
-                    reports/aci_scores.csv
+                     +---------+---------+
+                     |                   |
+                     v                   v
+          reports/aci_scores.csv   dashboard.json
+                                         |
+                              (monthly GitHub Action)
+                                         |
+                                         v
+                              aci-web/public/data/
+                                  dashboard.json
+                                         |
+                                         v
+                               React web dashboard
 ```
 
 ## Project structure
 
 ```
 aci_tool/
-├── cli.py                      # CLI entry point (5 subcommands)
+├── cli.py                      # CLI entry point (6 subcommands)
 ├── config.py                   # API keys, default paths
 ├── schemas.py                  # Pydantic models: Claim, Payment, Negotiation
 ├── compute.py                  # Feature aggregation (chat/claims/payments -> group-level)
 ├── scoring.py                  # ACI scoring algorithm (R, T, I, confidence)
 ├── chat_semantic.py            # Sentence-transformer feature extraction
+├── web_export.py               # Dashboard JSON generation for aci-web
 ├── utils.py                    # Shared helpers
 ├── collectors/
 │   ├── ransomware_live.py      # ransomware.live API client (claims)
