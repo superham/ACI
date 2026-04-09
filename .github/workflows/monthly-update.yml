@@ -43,7 +43,7 @@ jobs:
           aci web-export --since "$SINCE_DATE" --out dashboard.json
 
       - name: Upload dashboard.json artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: dashboard-json
           path: dashboard.json
