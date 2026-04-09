@@ -6,23 +6,41 @@ on:
       - '.github/workflows/configure-repo-settings.yml'
   workflow_dispatch:
 
+permissions: write-all
+
 jobs:
   configure:
     runs-on: ubuntu-latest
     steps:
-      - name: Update repository settings
+      - name: Update repository merge settings
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -x
+          
+          # First check current settings
+          echo "=== Current settings ==="
+          gh api repos/${{ github.repository }} --jq '{
+            delete_branch_on_merge: .delete_branch_on_merge,
+            allow_squash_merge: .allow_squash_merge,
+            allow_merge_commit: .allow_merge_commit,
+            allow_rebase_merge: .allow_rebase_merge,
+            squash_merge_commit_title: .squash_merge_commit_title,
+            squash_merge_commit_message: .squash_merge_commit_message,
+            allow_auto_merge: .allow_auto_merge,
+            security_and_analysis: .security_and_analysis
+          }'
+          
+          echo "=== Updating settings ==="
           gh api repos/${{ github.repository }} \
             --method PATCH \
-            -f "delete_branch_on_merge=true" \
-            -f "allow_squash_merge=true" \
-            -f "allow_merge_commit=true" \
-            -f "allow_rebase_merge=false" \
-            -f "squash_merge_commit_title=PR_TITLE" \
-            -f "squash_merge_commit_message=PR_BODY" \
-            -f "allow_auto_merge=true" \
+            -F "delete_branch_on_merge=true" \
+            -F "allow_squash_merge=true" \
+            -F "allow_merge_commit=true" \
+            -F "allow_rebase_merge=false" \
+            -F "squash_merge_commit_title=PR_TITLE" \
+            -F "squash_merge_commit_message=PR_BODY" \
+            -F "allow_auto_merge=true" \
             --jq '{
               delete_branch_on_merge: .delete_branch_on_merge,
               allow_squash_merge: .allow_squash_merge,
@@ -31,11 +49,12 @@ jobs:
               squash_merge_commit_title: .squash_merge_commit_title,
               squash_merge_commit_message: .squash_merge_commit_message,
               allow_auto_merge: .allow_auto_merge
-            }' || echo "WARNING: Failed to update merge settings (may need admin token)"
+            }' && echo "Merge settings updated successfully" || echo "FAILED to update merge settings"
 
       - name: Enable secret scanning
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
         run: |
           gh api repos/${{ github.repository }} \
             --method PATCH \
@@ -51,13 +70,13 @@ jobs:
             }
           }
           EOF
-          echo "Secret scanning configuration attempted"
+          echo "Secret scanning configuration completed"
 
       - name: Verify final settings
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "=== Current Repository Settings ==="
+          echo "=== Final Repository Settings ==="
           gh api repos/${{ github.repository }} --jq '{
             delete_branch_on_merge: .delete_branch_on_merge,
             allow_squash_merge: .allow_squash_merge,
