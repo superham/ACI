@@ -1,6 +1,9 @@
 name: Configure Repository Settings
 
 on:
+  push:
+    paths:
+      - '.github/workflows/configure-repo-settings.yml'
   workflow_dispatch:
 
 permissions:
@@ -16,7 +19,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             // Update repository settings
-            await github.rest.repos.update({
+            const result = await github.rest.repos.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
               delete_branch_on_merge: true,
@@ -36,6 +39,7 @@ jobs:
               }
             });
             console.log('Repository settings updated successfully');
+            console.log('Status:', result.status);
 
             // Verify settings
             const { data: repo } = await github.rest.repos.get({
@@ -50,3 +54,4 @@ jobs:
             console.log('  squash_merge_commit_title:', repo.squash_merge_commit_title);
             console.log('  squash_merge_commit_message:', repo.squash_merge_commit_message);
             console.log('  allow_auto_merge:', repo.allow_auto_merge);
+            console.log('  security_and_analysis:', JSON.stringify(repo.security_and_analysis, null, 2));
