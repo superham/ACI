@@ -11,6 +11,9 @@ on:
         required: false
         default: ''
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   update-dashboard:
     runs-on: ubuntu-latest
@@ -18,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout ACI tool
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -40,7 +43,7 @@ jobs:
           aci web-export --since "$SINCE_DATE" --out dashboard.json
 
       - name: Upload dashboard.json artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: dashboard-json
           path: dashboard.json

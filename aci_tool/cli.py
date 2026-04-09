@@ -251,11 +251,20 @@ def cmd_web_export(args):
         dump_raw_negotations(negs, DEFAULT_NEGOTIATIONS)
         print(f"[ACI]   \u2192 {len(claims)} claims, {len(pays)} payments, {len(negs)} chats")
 
+        if len(claims) == 0 and len(negs) == 0:
+            print("[ACI] ERROR: No claims or negotiations collected. "
+                  "Check that RLIVE_API_KEY is set and valid.")
+            sys.exit(1)
+
         print("[ACI] Step 2/3: Extracting chat features...")
         rows = list(extract_chat_features_from_jsonl(DEFAULT_NEGOTIATIONS))
         df_feats = pd.DataFrame(rows)
         df_feats.to_csv(DEFAULT_CHAT_FEATURES, index=False)
         print(f"[ACI]   \u2192 {len(df_feats)} chat features extracted")
+
+        if len(df_feats) == 0:
+            print("[ACI] ERROR: No chat features extracted — cannot generate dashboard.")
+            sys.exit(1)
     else:
         _require_file(DEFAULT_CHAT_FEATURES, "Chat features", "run without --skip-collect, or run 'aci run' first.")
         _require_file(DEFAULT_CLAIMS, "Claims file", "run without --skip-collect, or run 'aci collect' first.")
