@@ -1,12 +1,19 @@
-import argparse, os, json, sys, traceback
+import argparse
+import os
+import sys
+import traceback
+
 import pandas as pd
 import requests
 from dotenv import load_dotenv
-from .config import Config
-from .collectors.ransomware_live import fetch_claims, dump_raw as dump_rlive
-from .collectors.ransomwhere import fetch_payments, dump_raw as dump_rwhere
-from .collectors.negotiations import fetch_negotiations, dump_raw_negotations
+
 from .chat_semantic import extract_chat_features_from_jsonl
+from .collectors.negotiations import dump_raw_negotations, fetch_negotiations
+from .collectors.ransomware_live import dump_raw as dump_rlive
+from .collectors.ransomware_live import fetch_claims
+from .collectors.ransomwhere import dump_raw as dump_rwhere
+from .collectors.ransomwhere import fetch_payments
+from .config import Config
 from .scoring import compute_aci_from_files
 from .web_export import generate_dashboard_json, write_dashboard_json
 
@@ -62,17 +69,32 @@ def _output(df: pd.DataFrame, path: str, fmt: str):
 
 # ── Score display columns ───────────────────────────────────────────────────
 DISPLAY_COLS = [
-    "group", "ACI", "R", "T", "I",
-    "confidence", "low_data", "n_chats", "total_claims",
+    "group",
+    "ACI",
+    "R",
+    "T",
+    "I",
+    "confidence",
+    "low_data",
+    "n_chats",
+    "total_claims",
 ]
 
 VERBOSE_COLS = DISPLAY_COLS + [
-    "sample_offer_rate", "key_delivery_rate", "leak_threat_rate",
-    "publish_rate", "on_time_publish_rate",
-    "violation_claim_rate", "reextortion_behavior_rate", "data_resale_admission_rate",
-    "discount_frequency", "discount_generosity",
-    "has_payment_data", "total_payment_usd",
+    "sample_offer_rate",
+    "key_delivery_rate",
+    "leak_threat_rate",
+    "publish_rate",
+    "on_time_publish_rate",
+    "violation_claim_rate",
+    "reextortion_behavior_rate",
+    "data_resale_admission_rate",
+    "discount_frequency",
+    "discount_generosity",
+    "has_payment_data",
+    "total_payment_usd",
 ]
+
 
 def _display_cols(df: pd.DataFrame, verbose: bool = False) -> pd.DataFrame:
     """Select and round the standard display columns that exist in df."""
@@ -153,7 +175,9 @@ def cmd_run(args):
         print(f"[ACI]   \u2192 {len(claims)} claims, {len(pays)} payments, {len(negs)} chats")
     else:
         print("[ACI] Step 1/3: Skipping collection (--skip-collect)")
-        _require_file(DEFAULT_NEGOTIATIONS, "Negotiations file", "run without --skip-collect first, or run 'aci collect'.")
+        _require_file(
+            DEFAULT_NEGOTIATIONS, "Negotiations file", "run without --skip-collect first, or run 'aci collect'."
+        )
         _require_file(DEFAULT_CLAIMS, "Claims file", "run without --skip-collect first, or run 'aci collect'.")
 
     # Step 2: Chat features
@@ -233,7 +257,9 @@ def cmd_query(args):
         print(f"  Integrity (I):          {row.get('I', 'N/A'):.2f}  (post-payment behavior)")
         print(f"  ACI Score:              {row.get('ACI', 'N/A'):.2f} / 10")
         if "confidence" in row and pd.notna(row["confidence"]):
-            print(f"  Confidence:             {row['confidence']:.2f}  (based on {int(row.get('n_chats', 0))} chats, {int(row.get('total_claims', 0))} claims)")
+            print(
+                f"  Confidence:             {row['confidence']:.2f}  (based on {int(row.get('n_chats', 0))} chats, {int(row.get('total_claims', 0))} claims)"
+            )
 
 
 def cmd_web_export(args):
@@ -261,8 +287,7 @@ def cmd_web_export(args):
         print(f"[ACI]   \u2192 {len(claims)} claims, {len(pays)} payments, {len(negs)} chats")
 
         if len(claims) == 0 and len(negs) == 0:
-            print("[ACI] ERROR: No claims or negotiations collected. "
-                  "Check that RLIVE_API_KEY is set and valid.")
+            print("[ACI] ERROR: No claims or negotiations collected. Check that RLIVE_API_KEY is set and valid.")
             sys.exit(1)
 
         print("[ACI] Step 2/3: Extracting chat features...")
@@ -292,7 +317,8 @@ def cmd_web_export(args):
 # ── Argument parser ─────────────────────────────────────────────────────
 def _add_format_arg(parser, default="csv"):
     parser.add_argument(
-        "--format", "-f",
+        "--format",
+        "-f",
         choices=["csv", "json", "table"],
         default=default,
         help=f"Output format (default: {default})",

@@ -17,9 +17,12 @@ Outputs:
 """
 
 from __future__ import annotations
+
 from typing import Optional
-import pandas as pd
+
 import numpy as np
+import pandas as pd
+
 
 # helpers - safe combine with NaN-aware weights
 def _nanmean(values: list[Optional[float]], weights: list[float]) -> float:
@@ -37,6 +40,7 @@ def _nanmean(values: list[Optional[float]], weights: list[float]) -> float:
     if total_weight == 0.0:
         return np.nan
     return total / total_weight
+
 
 # Compute R - (Key Delivery & Decryption Reliability)
 def compute_reliability(df_group: pd.DataFrame) -> pd.Series:
@@ -75,6 +79,7 @@ def compute_reliability(df_group: pd.DataFrame) -> pd.Series:
         values.append(R)
 
     return pd.Series(values, index=df_group.index, name="R")
+
 
 # ComputeT - (Threat Follow-Through)
 def compute_threat_followthrough(df_group: pd.DataFrame) -> pd.Series:
@@ -124,21 +129,21 @@ def compute_threat_followthrough(df_group: pd.DataFrame) -> pd.Series:
 
     return pd.Series(values, index=df_group.index, name="T")
 
+
 # Compute I - (Post-Payment Integrity / Re-Extortion)
 def compute_integrity(df_group: pd.DataFrame) -> pd.Series:
     """
     post-payment integrity per group [0, 1]
 
-    The v1 implementation relies on primarily on *semantic chat signals:
-      - deletion_promise_rate
+    The v1 implementation relies primarily on *semantic chat signals:
       - violation_claim_rate
       - reextortion_behavior_rate
       - data_resale_admission_rate
 
     Currently, there is no per-victim linkage (e.g. connecting that victim A was attacked, paid,
-    and at a later date the attacker re-attacked / re-extorted that same victim). 
-    This is a major limition of the curent tool. TODO
-    
+    and at a later date the attacker re-attacked / re-extorted that same victim).
+    This is a major limitation of the current tool. TODO
+
     approximating integrity as:
       I = 1 - f(violation_claim_rate, reextortion_behavior_rate,
                   data_resale_admission_rate)
@@ -150,7 +155,6 @@ def compute_integrity(df_group: pd.DataFrame) -> pd.Series:
     values = []
     for _, row in df_group.iterrows():
         # Rates defined in compute_chat_group_features if semantic labels exist
-        deletion_promise_rate = float(row.get("deletion_promise_rate", np.nan))
         violation_claim_rate = float(row.get("violation_claim_rate", np.nan))
         reextortion_rate = float(row.get("reextortion_behavior_rate", np.nan))
         resale_rate = float(row.get("data_resale_admission_rate", np.nan))
@@ -180,6 +184,7 @@ def compute_integrity(df_group: pd.DataFrame) -> pd.Series:
         values.append(I)
 
     return pd.Series(values, index=df_group.index, name="I")
+
 
 # Combine R, T, I -> ACI
 def compute_aci(df_group: pd.DataFrame) -> pd.DataFrame:
@@ -261,10 +266,7 @@ def _compute_confidence(df: pd.DataFrame) -> pd.Series:
         claim_conf = min(n_claims / CLAIM_SATURATE, 1.0)
 
         # Component coverage: how many of R/T/I are non-NaN
-        n_components = sum(
-            1 for c in ["R", "T", "I"]
-            if c in row and pd.notna(row[c])
-        )
+        n_components = sum(1 for c in ["R", "T", "I"] if c in row and pd.notna(row[c]))
         coverage = n_components / 3.0
 
         # Weighted blend
@@ -272,6 +274,7 @@ def _compute_confidence(df: pd.DataFrame) -> pd.Series:
         values.append(round(conf, 3))
 
     return pd.Series(values, index=df.index, name="confidence")
+
 
 MIN_CHATS_FOR_SCORE = 2  # Groups with fewer chats get a low-confidence warning
 
@@ -297,14 +300,15 @@ def compute_aci_from_files(
         DataFrame with ACI scores (per group or per group-year)
     """
     import os
+
     from .compute import (
-        load_chat_features,
-        compute_chat_group_features,
-        load_claims,
-        compute_claim_group_features,
-        load_payments,
-        compute_payment_group_features,
         combine_group_features,
+        compute_chat_group_features,
+        compute_claim_group_features,
+        compute_payment_group_features,
+        load_chat_features,
+        load_claims,
+        load_payments,
     )
 
     df_chat = load_chat_features(chat_features_path)

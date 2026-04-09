@@ -3,12 +3,16 @@
 #       It defaults to only 5 in cli.py
 #       This is a time-consuming process, so ramp up the neg-limit in increments
 
-import os, json, requests
-from typing import Optional, List
+import json
+import os
+from typing import List, Optional
+
+import requests
+
 from ..schemas import Negotiation
-from ..utils import parse_dt  # TODO can use to normalize timestamps later 
 
 BASE = "https://api-pro.ransomware.live"
+
 
 # Call /negotiations to get list of groups that have negotiation logs.
 def fetch_negotiation_groups(api_key: str):
@@ -17,6 +21,7 @@ def fetch_negotiation_groups(api_key: str):
     r = requests.get(url, headers=headers, timeout=30)
     r.raise_for_status()
     return r.json()
+
 
 # Call /negotiations/{group} to list chat metadata for that group.
 def fetch_group_chats(api_key: str, group: str):
@@ -27,13 +32,13 @@ def fetch_group_chats(api_key: str, group: str):
         return []
     r.raise_for_status()
     data = r.json()
-    
+
     # Response format: {"client": "...", "group": "Akira", "count": 61, "chats": [{"id": "20230529", ...}, ...]}
     if isinstance(data, dict) and "chats" in data:
         return data["chats"]
-    
-    #print(f"[NEGOTIATIONS] {group} chats in response: {len(data)}")
-    #print(data)
+
+    # print(f"[NEGOTIATIONS] {group} chats in response: {len(data)}")
+    # print(data)
     return data
 
 
@@ -105,7 +110,7 @@ def fetch_negotiations(api_key: Optional[str], limit_groups: Optional[int] = Non
                 ended_at=ended_at,
                 messages=messages,
                 ransominfo=ransominfo,
-                meta={k: v for k, v in chat.items() if k not in {"chat_id", "id", "victim"}}
+                meta={k: v for k, v in chat.items() if k not in {"chat_id", "id", "victim"}},
             )
             records.append(rec)
 

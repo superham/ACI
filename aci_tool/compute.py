@@ -12,9 +12,12 @@ Outputs
 """
 
 from __future__ import annotations
+
 from typing import Optional
-import pandas as pd
+
 import numpy as np
+import pandas as pd
+
 
 # aggregate chat_features.csv → per-group features
 def load_chat_features(path: str) -> pd.DataFrame:
@@ -49,7 +52,7 @@ def compute_chat_group_features(df_chat: pd.DataFrame, by_year: bool = False) ->
     """
     Aggregate chat-level semantic features to one row per ransomware group.
     If by_year=True, creates one row per (group, year) combination.
-    
+
     Returns a DataFrame with columns like:
       - group
       - year (if by_year=True)
@@ -80,10 +83,10 @@ def compute_chat_group_features(df_chat: pd.DataFrame, by_year: bool = False) ->
 
     # Determine grouping columns
     group_cols = ["group", "year"] if by_year and "year" in df_chat.columns else ["group"]
-    
+
     for group_key, sub in df_chat.groupby(group_cols):
         row: dict[str, Optional[float]] = {}
-        
+
         # Handle tuple vs single value for group key
         if isinstance(group_key, tuple) and len(group_key) > 1:
             row["group"] = str(group_key[0])
@@ -174,7 +177,9 @@ def load_claims(path: str) -> pd.DataFrame:
     df = pd.read_json(path, lines=True)
     if "group" not in df.columns:
         raise ValueError("ransomware_live.jsonl must contain a 'group' column.")
-    df["group"] = df["group"].astype(str).str.strip().str.lower() # fix bug where group abc & ABC were treated as different
+    df["group"] = (
+        df["group"].astype(str).str.strip().str.lower()
+    )  # fix bug where group abc & ABC were treated as different
     return df
 
 
@@ -206,17 +211,17 @@ def compute_claim_group_features(df_claims: pd.DataFrame, by_year: bool = False)
 
     records = []
     group_cols = ["group", "year"] if by_year and "year" in df_claims.columns else ["group"]
-    
+
     for group_key, sub in df_claims.groupby(group_cols):
         row: dict[str, Optional[float]] = {}
-        
+
         # Handle tuple vs single value for group key
         if isinstance(group_key, tuple) and len(group_key) > 1:
             row["group"] = str(group_key[0])
             row["year"] = group_key[1]
         else:
             row["group"] = str(group_key) if not isinstance(group_key, tuple) else str(group_key[0])
-            
+
         total = len(sub)
         row["total_claims"] = int(total)
 
@@ -295,14 +300,16 @@ def compute_payment_group_features(df_payments: pd.DataFrame) -> pd.DataFrame:
         n_txs = sub["tx_count"].sum() if "tx_count" in sub.columns else 0
         avg_usd = sub["amount_usd"].mean() if "amount_usd" in sub.columns else np.nan
 
-        records.append({
-            "group": str(group),
-            "total_payment_usd": float(total_usd),
-            "n_payment_addresses": int(n_addrs),
-            "total_tx_count": int(n_txs),
-            "avg_payment_usd": float(avg_usd) if pd.notna(avg_usd) else np.nan,
-            "has_payment_data": 1 if total_usd > 0 else 0,
-        })
+        records.append(
+            {
+                "group": str(group),
+                "total_payment_usd": float(total_usd),
+                "n_payment_addresses": int(n_addrs),
+                "total_tx_count": int(n_txs),
+                "avg_payment_usd": float(avg_usd) if pd.notna(avg_usd) else np.nan,
+                "has_payment_data": 1 if total_usd > 0 else 0,
+            }
+        )
 
     return pd.DataFrame.from_records(records)
 

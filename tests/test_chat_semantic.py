@@ -1,18 +1,20 @@
 """Tests for aci_tool.chat_semantic — parsing and feature extraction helpers."""
 
-import pytest
-from aci_tool.chat_semantic import (
-    split_sentences,
-    parse_amount,
-    is_attacker_message,
-    extract_chat_features,
-)
-
 import os
+
+import pytest
+
+from aci_tool.chat_semantic import (
+    extract_chat_features,
+    is_attacker_message,
+    parse_amount,
+    split_sentences,
+)
 
 _model_available = False
 try:
     from sentence_transformers import SentenceTransformer
+
     # Only check local cache — don't trigger a network download at import time
     cache_dir = os.path.join(
         os.getenv("HF_HOME", os.path.join(os.path.expanduser("~"), ".cache", "huggingface")),

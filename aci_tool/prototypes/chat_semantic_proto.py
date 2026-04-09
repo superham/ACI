@@ -21,7 +21,6 @@ PROTOTYPES: Dict[str, List[str]] = {
         "before payment you can decrypt any file you want as a test",
         "we will provide a test decryptor so you can verify our decryption",
     ],
-
     # Victim confirms the sample decryption worked
     "proof_success": [
         "the test files you decrypted opened correctly",
@@ -31,7 +30,6 @@ PROTOTYPES: Dict[str, List[str]] = {
         "the files from the test decryption are readable",
         "the decrypted samples work fine on our side",
     ],
-
     # Attacker sends or references a decryptor/key (key delivery)
     "key_delivery": [
         "you will receive a universal decryptor for all encrypted files",
@@ -43,7 +41,6 @@ PROTOTYPES: Dict[str, List[str]] = {
         "we will provide an unlocker utility with instructions",
         "we will send you a private key and decryption software",
     ],
-
     # THREAT FOLLOW-THROUGH (Leaking/Shaming/Auctioning data)
     "leak_threat": [
         "if you do not contact us, we will start publishing your data",
@@ -57,7 +54,6 @@ PROTOTYPES: Dict[str, List[str]] = {
         "we will list your company on our data leak page",
         "we will sell or publish your data if you refuse to pay",
     ],
-
     # Explicit "follow-through" language — attacker says they already leaked
     # or are currently leaking (evidence they tend to act on threats)
     "leak_followthrough": [
@@ -69,7 +65,6 @@ PROTOTYPES: Dict[str, List[str]] = {
         "your databases have already been shared with our partners",
         "your leaks are posted and available for download",
     ],
-
     # POST-PAYMENT INTEGRITY & RE-EXTORTION
     # Attacker promises deletion / non-disclosure after payment
     "deletion_promise": [
@@ -82,7 +77,6 @@ PROTOTYPES: Dict[str, List[str]] = {
         "we will not keep any backups of your files once the deal is complete",
         "we will delete all stolen data as soon as the transaction is confirmed",
     ],
-
     # Attacker explicitly promises no future extortion
     "no_future_extortion_promise": [
         "we will not attack you again in the future",
@@ -92,7 +86,6 @@ PROTOTYPES: Dict[str, List[str]] = {
         "there will be no additional demands once you pay the agreed amount",
         "we will not return to you or target your company again",
     ],
-
     # Victim accuses attacker of breaking a promise (strong signal)
     "violation_claim": [
         "you promised to delete our data after we paid",
@@ -103,7 +96,6 @@ PROTOTYPES: Dict[str, List[str]] = {
         "you are asking for more money after we already paid you",
         "you leaked our data even though we paid the ransom",
     ],
-
     # Attacker openly engages in re-extortion behavior
     "reextortion_behavior": [
         "you must pay again if you want us to delete the data",
@@ -113,7 +105,6 @@ PROTOTYPES: Dict[str, List[str]] = {
         "you still have to pay more if you want us to keep our promises",
         "we are making a second demand because you were late with payment",
     ],
-
     # Attacker states that they sell or reuse data
     # → strong negative for integrity score
     "data_resale_admission": [
