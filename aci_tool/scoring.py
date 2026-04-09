@@ -209,27 +209,20 @@ def compute_aci(df_group: pd.DataFrame) -> pd.DataFrame:
     df["T"] = compute_threat_followthrough(df)
     df["I"] = compute_integrity(df)
 
-    # Weighted sum (NaN-safe: if some components are NaN, they just disappear)
+    # Weighted sum: missing components are treated as 0.0 (not skipped),
+    # so groups with incomplete data receive a lower score rather than
+    # having their weights renormalized upward.
     aci_raw = []
     for _, row in df.iterrows():
         R = float(row.get("R", np.nan))
         T = float(row.get("T", np.nan))
         I = float(row.get("I", np.nan))
 
-        components = []
-        weights = []
+        R = 0.0 if np.isnan(R) else R
+        T = 0.0 if np.isnan(T) else T
+        I = 0.0 if np.isnan(I) else I
 
-        if not np.isnan(R):
-            components.append(R)
-            weights.append(0.4)
-        if not np.isnan(T):
-            components.append(T)
-            weights.append(0.3)
-        if not np.isnan(I):
-            components.append(I)
-            weights.append(0.3)
-
-        val = _nanmean(components, weights) if components else np.nan
+        val = 0.4 * R + 0.3 * T + 0.3 * I
         aci_raw.append(val)
 
     df["ACI_raw"] = aci_raw

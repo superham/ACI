@@ -179,6 +179,64 @@ class TestComputeACI:
         result = compute_aci(df)
         assert 0 <= result["ACI"].iloc[0] <= 10
 
+    def test_missing_r_not_inflated(self):
+        """When R is NaN, ACI should NOT be inflated by weight renormalization."""
+        df = pd.DataFrame(
+            [
+                {
+                    "group": "partial",
+                    # R components missing → R = NaN
+                    "publish_rate": 1.0,
+                    "leak_threat_rate": 1.0,
+                    "violation_claim_rate": 0.0,
+                    "reextortion_behavior_rate": 0.0,
+                    "data_resale_admission_rate": 0.0,
+                    "n_chats": 5,
+                    "total_claims": 10,
+                }
+            ]
+        )
+        result = compute_aci(df)
+        assert np.isnan(result["R"].iloc[0])
+        assert result["T"].iloc[0] == pytest.approx(1.0)
+        assert result["I"].iloc[0] == pytest.approx(1.0)
+        # Missing R treated as 0: ACI = (0.4*0 + 0.3*1.0 + 0.3*1.0) * 10 = 6.0
+        assert result["ACI"].iloc[0] == pytest.approx(6.0)
+
+    def test_missing_r_and_t(self):
+        """When R and T are both NaN, only I contributes."""
+        df = pd.DataFrame(
+            [
+                {
+                    "group": "minimal",
+                    "violation_claim_rate": 0.0,
+                    "reextortion_behavior_rate": 0.0,
+                    "data_resale_admission_rate": 0.0,
+                    "n_chats": 5,
+                    "total_claims": 10,
+                }
+            ]
+        )
+        result = compute_aci(df)
+        # Only I=1.0 present: ACI = (0.4*0 + 0.3*0 + 0.3*1.0) * 10 = 3.0
+        assert result["ACI"].iloc[0] == pytest.approx(3.0)
+
+    def test_missing_r_t_with_default_integrity(self):
+        """When R and T are NaN, I defaults to 1.0 (no bad signals) and contributes 3.0 ACI."""
+        df = pd.DataFrame(
+            [
+                {
+                    "group": "empty",
+                    "n_chats": 0,
+                    "total_claims": 0,
+                }
+            ]
+        )
+        result = compute_aci(df)
+        # R=NaN, T=NaN → treated as 0; I defaults to 1.0 (no bad signals)
+        # ACI = (0.4*0 + 0.3*0 + 0.3*1.0) * 10 = 3.0
+        assert result["ACI"].iloc[0] == pytest.approx(3.0)
+
     def test_multiple_groups(self):
         df = pd.DataFrame(
             [
