@@ -43,6 +43,7 @@ class TestSafeRound:
 
 # ── _safe_int ───────────────────────────────────────────────────────────
 
+
 class TestSafeInt:
     def test_normal_int(self):
         assert _safe_int(5) == 5
@@ -74,15 +75,18 @@ class TestSafeInt:
 
 # ── _build_confidence_data with NaN ──────────────────────────────────
 
+
 class TestBuildConfidenceDataNaN:
     def test_nan_fields_dont_crash(self):
-        df = pd.DataFrame({
-            "group": ["alpha"],
-            "confidence": [0.85],
-            "n_chats": [np.nan],
-            "total_claims": [np.nan],
-            "low_data": [np.nan],
-        })
+        df = pd.DataFrame(
+            {
+                "group": ["alpha"],
+                "confidence": [0.85],
+                "n_chats": [np.nan],
+                "total_claims": [np.nan],
+                "low_data": [np.nan],
+            }
+        )
         result = _build_confidence_data(df, ["alpha"])
         assert len(result) == 1
         assert result[0]["nChats"] == 0
