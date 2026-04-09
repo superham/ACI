@@ -151,10 +151,12 @@ The web dashboard loads this static JSON file at runtime -- no backend API is re
 
 ```bash
 # Generate dashboard-ready JSON for the web frontend
-aci web-export --since 2020-01-01 --out reports/dashboard.json
+aci web-export --since 2020-01-01 --out dashboard.json
 ```
 
-The export applies inclusion criteria (groups need 2+ years of data with 1+ event per year) so only sufficiently-documented groups appear on the dashboard. The output includes overview stats, per-group R/T/I breakdowns, yearly trends, confidence data, and outcome metrics.
+The `--out` path defaults to `reports/dashboard.json`; the monthly GitHub Action overrides it to write `dashboard.json` at the repo root for copying into the web repo.
+
+The export applies inclusion criteria (groups need 2+ years of data with 1+ negotiation transcript per year) so only sufficiently-documented groups appear on the dashboard. The output includes overview stats, per-group R/T/I breakdowns, yearly trends, confidence data, and outcome metrics.
 
 ## Data flow
 
