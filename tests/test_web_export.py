@@ -2,6 +2,7 @@
 Tests for the web_export module — dashboard JSON generation and exclusion criteria.
 """
 
+import numpy as np
 import pandas as pd
 
 from aci_tool.web_export import (
