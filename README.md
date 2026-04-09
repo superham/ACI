@@ -135,7 +135,7 @@ All calculations are NaN-safe: missing components are skipped and weights are re
 
 ## Web dashboard
 
-ACI scores are published to an interactive web dashboard built with React ([superham/aci-web](https://github.com/superham/aci-web)). The dashboard lets users explore scores, filter by confidence, drill into individual groups, and view year-over-year trends.
+ACI scores are published to an interactive web dashboard built with React. The dashboard lets users explore scores, filter by confidence, drill into individual groups, and view year-over-year trends.
 
 ### Monthly data flow
 
