@@ -1,6 +1,8 @@
-from pydantic import BaseModel
-from typing import Optional, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel
+
 
 class Claim(BaseModel):
     source: str
@@ -16,6 +18,7 @@ class Claim(BaseModel):
     post_url: Optional[str] = None
     extra: Dict[str, Any] = {}
 
+
 class Payment(BaseModel):
     source: str
     family: Optional[str] = None
@@ -25,6 +28,7 @@ class Payment(BaseModel):
     amount_usd: Optional[float] = None
     tx_count: Optional[int] = None
     extra: Dict[str, Any] = {}
+
 
 class Confirmation(BaseModel):
     source: str
@@ -36,10 +40,9 @@ class Confirmation(BaseModel):
     details_url: Optional[str] = None
     extra: Dict[str, Any] = {}
 
+
 # NOTE: These are specific for ransomware.live pro and ransomwwhere api responses, will need to be generalized
 
-from pydantic import BaseModel
-from typing import Any, Dict, List, Optional
 
 class Negotiation(BaseModel):
     source: str = "ransomware_live_pro"

@@ -49,8 +49,7 @@ def _apply_exclusion_criteria(
 
     # Filter to rows where n_chats >= min_events_per_year
     yearly_with_data = df_yearly[
-        (df_yearly["year"] != "TOTAL")
-        & (df_yearly["n_chats"].fillna(0) >= min_events_per_year)
+        (df_yearly["year"] != "TOTAL") & (df_yearly["n_chats"].fillna(0) >= min_events_per_year)
     ]
 
     # Count distinct qualifying years per group
@@ -82,9 +81,7 @@ def _build_overview_stats(
     ]
 
 
-def _build_total_aci_values(
-    df_total: pd.DataFrame, qualifying_groups: list[str]
-) -> list[dict]:
+def _build_total_aci_values(df_total: pd.DataFrame, qualifying_groups: list[str]) -> list[dict]:
     """Build the total ACI values for the bar chart."""
     filtered = df_total[df_total["group"].isin(qualifying_groups)].copy()
     filtered = filtered.sort_values("ACI", ascending=False)
@@ -100,17 +97,12 @@ def _build_total_aci_values(
     return results
 
 
-def _build_per_year_aci_values(
-    df_yearly: pd.DataFrame, qualifying_groups: list[str]
-) -> list[dict]:
+def _build_per_year_aci_values(df_yearly: pd.DataFrame, qualifying_groups: list[str]) -> list[dict]:
     """Build per-year ACI values for the line chart."""
     if "year" not in df_yearly.columns:
         return []
 
-    filtered = df_yearly[
-        (df_yearly["group"].isin(qualifying_groups))
-        & (df_yearly["year"] != "TOTAL")
-    ].copy()
+    filtered = df_yearly[(df_yearly["group"].isin(qualifying_groups)) & (df_yearly["year"] != "TOTAL")].copy()
 
     results = []
     for _, row in filtered.iterrows():
@@ -130,9 +122,7 @@ def _build_per_year_aci_values(
     return sorted(results, key=lambda x: (x["brand"], x["year"]))
 
 
-def _build_rti_values(
-    df_total: pd.DataFrame, qualifying_groups: list[str]
-) -> list[dict]:
+def _build_rti_values(df_total: pd.DataFrame, qualifying_groups: list[str]) -> list[dict]:
     """Build R, T, I component values for the clustered bar / radar charts."""
     filtered = df_total[df_total["group"].isin(qualifying_groups)].copy()
     filtered = filtered.sort_values("ACI", ascending=False)
@@ -159,9 +149,7 @@ def _build_outcome_metrics(
     results = []
 
     for group in qualifying_groups:
-        group_chats = df_chat_features[
-            df_chat_features["group"].str.lower() == group.lower()
-        ]
+        group_chats = df_chat_features[df_chat_features["group"].str.lower() == group.lower()]
         group_aci = df_total[df_total["group"].str.lower() == group.lower()]
 
         if group_chats.empty:
@@ -173,11 +161,7 @@ def _build_outcome_metrics(
         # Payment frequency
         paid_rate = group_chats["paid"].sum() / n if "paid" in group_chats.columns else 0
         # Discount frequency
-        discount_freq = (
-            group_chats["gave_discount"].mean()
-            if "gave_discount" in group_chats.columns
-            else 0
-        )
+        discount_freq = group_chats["gave_discount"].mean() if "gave_discount" in group_chats.columns else 0
         # Discount amount (average discount ratio among those who gave discounts)
         discount_amt = 0.0
         if "discount_ratio" in group_chats.columns and "gave_discount" in group_chats.columns:
@@ -204,9 +188,7 @@ def _build_outcome_metrics(
     return sorted(results, key=lambda x: x["brand"])
 
 
-def _build_confidence_data(
-    df_total: pd.DataFrame, qualifying_groups: list[str]
-) -> list[dict]:
+def _build_confidence_data(df_total: pd.DataFrame, qualifying_groups: list[str]) -> list[dict]:
     """Build confidence scores and data volume metadata per group."""
     filtered = df_total[df_total["group"].isin(qualifying_groups)].copy()
 
@@ -240,15 +222,17 @@ def _build_group_details(
         row = group_total.iloc[0]
 
         # Years active
-        group_yearly = df_yearly[
-            (df_yearly["group"].str.lower() == group.lower())
-            & (df_yearly["year"] != "TOTAL")
-        ] if "year" in df_yearly.columns else pd.DataFrame()
+        group_yearly = (
+            df_yearly[(df_yearly["group"].str.lower() == group.lower()) & (df_yearly["year"] != "TOTAL")]
+            if "year" in df_yearly.columns
+            else pd.DataFrame()
+        )
 
-        years_active = sorted(
-            [int(float(y)) for y in group_yearly["year"].dropna().unique()
-             if str(y) != "TOTAL"]
-        ) if not group_yearly.empty else []
+        years_active = (
+            sorted([int(float(y)) for y in group_yearly["year"].dropna().unique() if str(y) != "TOTAL"])
+            if not group_yearly.empty
+            else []
+        )
 
         # Per-year trend
         yearly_trend = []
@@ -320,7 +304,9 @@ def generate_dashboard_json(
     qualifying_groups = _apply_exclusion_criteria(df_total, df_yearly)
 
     # Count totals for overview
-    n_chats_total = int(df_chat_features["chat_id"].nunique()) if "chat_id" in df_chat_features.columns else len(df_chat_features)
+    n_chats_total = (
+        int(df_chat_features["chat_id"].nunique()) if "chat_id" in df_chat_features.columns else len(df_chat_features)
+    )
     n_payments_total = 0
     if payments_path and os.path.exists(payments_path):
         try:
@@ -332,19 +318,13 @@ def generate_dashboard_json(
     # Build all sections
     dashboard = {
         "generatedAt": datetime.now(timezone.utc).isoformat(),
-        "overviewStats": _build_overview_stats(
-            df_total, qualifying_groups, n_chats_total, n_payments_total
-        ),
+        "overviewStats": _build_overview_stats(df_total, qualifying_groups, n_chats_total, n_payments_total),
         "totalACIValues": _build_total_aci_values(df_total, qualifying_groups),
         "perYearACIValues": _build_per_year_aci_values(df_yearly, qualifying_groups),
         "rtiValues": _build_rti_values(df_total, qualifying_groups),
-        "outcomeMetrics": _build_outcome_metrics(
-            df_total, df_chat_features, qualifying_groups
-        ),
+        "outcomeMetrics": _build_outcome_metrics(df_total, df_chat_features, qualifying_groups),
         "confidenceData": _build_confidence_data(df_total, qualifying_groups),
-        "groupDetails": _build_group_details(
-            df_total, df_yearly, df_chat_features, qualifying_groups
-        ),
+        "groupDetails": _build_group_details(df_total, df_yearly, df_chat_features, qualifying_groups),
     }
 
     return dashboard

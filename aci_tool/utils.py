@@ -1,5 +1,7 @@
-from dateutil import parser
 from typing import Optional
+
+from dateutil import parser
+
 
 # parses date / time strings into datetime objects
 def parse_dt(x: Optional[str]):
@@ -9,6 +11,7 @@ def parse_dt(x: Optional[str]):
         return parser.parse(x)
     except Exception:
         return None
+
 
 # safely converts a value to float, returns None if conversion fails
 # probably a better way to do this, but it’s a start

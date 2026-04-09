@@ -3,15 +3,19 @@ Semantic feature extraction from ransomware negotiation chats.
 """
 
 from __future__ import annotations
+
 import json
 import re
-from typing import Any, Dict, List, Optional, Generator, Mapping
+from typing import Any, Dict, Generator, List, Mapping, Optional
+
 from sentence_transformers import SentenceTransformer, util
+
 from aci_tool.prototypes.chat_semantic_proto import PROTOTYPES
 
 # Lazily-loaded model + prototype embeddings
 _MODEL: Optional[SentenceTransformer] = None
 _PROTO_EMBS: Optional[Dict[str, Any]] = None
+
 
 def _get_model_and_prototypes():
     """Load the embedding model and prototype embeddings once."""
@@ -19,14 +23,15 @@ def _get_model_and_prototypes():
     if _MODEL is None:
         _MODEL = SentenceTransformer("all-MiniLM-L6-v2")
         _PROTO_EMBS = {
-            label: _MODEL.encode(examples, normalize_embeddings=True)
-            for label, examples in PROTOTYPES.items()
+            label: _MODEL.encode(examples, normalize_embeddings=True) for label, examples in PROTOTYPES.items()
         }
     return _MODEL, _PROTO_EMBS
+
 
 # helpers
 _SENT_SPLIT_RE = re.compile(r"[.!?]\s+")
 _AMOUNT_RE = re.compile(r"(\d[\d,\.]*)")
+
 
 def split_sentences(text: str) -> List[str]:
     """Very rough sentence splitter; good enough for the negotiation chats"""
@@ -40,6 +45,7 @@ def split_sentences(text: str) -> List[str]:
         if s:
             out.append(s)
     return out
+
 
 def parse_amount(raw: Optional[str]) -> Optional[float]:
     """
@@ -61,6 +67,7 @@ def parse_amount(raw: Optional[str]) -> Optional[float]:
     except ValueError:
         return None
 
+
 def is_attacker_message(msg: Mapping[str, Any]) -> bool:
     """
     Ransomware attacker messages are any where party != 'Victim'
@@ -68,6 +75,7 @@ def is_attacker_message(msg: Mapping[str, Any]) -> bool:
     """
     party = (msg.get("party") or "").strip().lower()
     return party != "victim"
+
 
 # Semantic classification for a single sentence
 def classify_sentence_semantic(
@@ -94,6 +102,7 @@ def classify_sentence_semantic(
         hits[label] = bool(sim >= threshold)
     return hits
 
+
 # Aggregate per message & per chat
 def extract_flags_from_message(
     msg: Mapping[str, Any],
@@ -112,6 +121,7 @@ def extract_flags_from_message(
             if hit:
                 agg[label] = True
     return agg
+
 
 def extract_chat_features(chat: Mapping[str, Any]) -> Dict[str, Any]:
     """
@@ -133,11 +143,12 @@ def extract_chat_features(chat: Mapping[str, Any]) -> Dict[str, Any]:
     if started_at and started_at.strip():
         try:
             from dateutil import parser as dt_parser
+
             dt = dt_parser.parse(started_at)
             year = dt.year
-        except:
+        except (ValueError, TypeError):
             pass
-    
+
     # If no started_at, try to extract year from chat_id (format: YYYYMMDD)
     if year is None:
         chat_id = chat.get("chat_id", "")
@@ -149,7 +160,7 @@ def extract_chat_features(chat: Mapping[str, Any]) -> Dict[str, Any]:
                     year = year_candidate
             except (ValueError, TypeError):
                 pass
-    
+
     features["year"] = year
 
     # Meta ransom behavior
@@ -157,7 +168,7 @@ def extract_chat_features(chat: Mapping[str, Any]) -> Dict[str, Any]:
     nego_amt = parse_amount(meta.get("negotiatedransom"))
     features["initial_ransom_usd"] = init_amt
     features["negotiated_ransom_usd"] = nego_amt
-    features["paid"] = bool(meta.get("paid", False)) # may lead to false negatives with default false
+    features["paid"] = bool(meta.get("paid", False))  # may lead to false negatives with default false
 
     if init_amt is not None and nego_amt is not None and nego_amt < init_amt:
         features["gave_discount"] = 1
@@ -183,6 +194,7 @@ def extract_chat_features(chat: Mapping[str, Any]) -> Dict[str, Any]:
 
     return features
 
+
 # more helpers for whole file analysis
 def iter_jsonl(path: str) -> Generator[Dict[str, Any], None, None]:
     """Yield parsed JSON objects from a JSONL file."""
@@ -192,6 +204,7 @@ def iter_jsonl(path: str) -> Generator[Dict[str, Any], None, None]:
             if not line:
                 continue
             yield json.loads(line)
+
 
 def extract_chat_features_from_jsonl(
     path: str,
