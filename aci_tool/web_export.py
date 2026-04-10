@@ -81,8 +81,8 @@ def _build_overview_stats(
         aci_range = f"{aci_vals.min():.1f} - {aci_vals.max():.1f}"
 
     return [
-        {"label": "Ransomware Brands Scored:", "value": str(len(qualifying_groups))},
-        {"label": "Negotiation Transcripts:", "value": f"{n_chats_total:,}"},
+        {"label": "Ransomware Brands Scored", "value": str(len(qualifying_groups))},
+        {"label": "Negotiation Transcripts", "value": f"{n_chats_total:,}"},
         {"label": "ACI Range", "value": aci_range},
         {"label": "Payment Records", "value": f"{n_payments_total:,}"},
     ]
