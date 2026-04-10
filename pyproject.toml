@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aci-tool"
-version = "1.1.0"
+version = "1.0.0"
 description = "Attacker Credibility Index — score ransomware groups on reliability, threat follow-through, and integrity"
 readme = "README.md"
 license = {text = "MIT"}
