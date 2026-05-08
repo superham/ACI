@@ -95,11 +95,13 @@ def classify_sentence_semantic(
     model, proto_embs = _get_model_and_prototypes()
     try:
         emb = model.encode(sentence, normalize_embeddings=True)
-    except ValueError:
+    except ValueError as exc:
         # sentence_transformers' modality detection runs urlparse() on inputs to
         # check for image URLs. Chat content with truncated bracketed URLs like
         # 'https://[onion...' makes Python 3.11+ raise "Invalid IPv6 URL".
-        # Strip square brackets and retry.
+        # Only swallow that specific case; other ValueErrors are real bugs.
+        if "Invalid IPv6 URL" not in str(exc):
+            raise
         emb = model.encode(re.sub(r"[\[\]]", " ", sentence), normalize_embeddings=True)
 
     hits: Dict[str, bool] = {}

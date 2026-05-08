@@ -76,6 +76,47 @@ class TestIsAttackerMessage:
         assert is_attacker_message({}) is True  # default: not victim
 
 
+class TestClassifyIPv6Fallback:
+    """sentence_transformers' modality detection raises 'Invalid IPv6 URL' on
+    truncated bracketed URLs in chat content. We catch only that case and retry
+    with brackets stripped."""
+
+    def test_invalid_ipv6_url_triggers_retry_with_stripped_brackets(self, monkeypatch):
+        from aci_tool import chat_semantic
+
+        calls = []
+
+        class FakeModel:
+            def encode(self, text, normalize_embeddings=True):
+                calls.append(text)
+                if "[" in text or "]" in text:
+                    raise ValueError("Invalid IPv6 URL")
+                return [0.0]
+
+        monkeypatch.setattr(
+            chat_semantic, "_get_model_and_prototypes", lambda: (FakeModel(), {})
+        )
+
+        result = chat_semantic.classify_sentence_semantic("visit https://[onion-link")
+        assert result == {}
+        assert len(calls) == 2
+        assert "[" not in calls[1] and "]" not in calls[1]
+
+    def test_unrelated_value_error_propagates(self, monkeypatch):
+        from aci_tool import chat_semantic
+
+        class FakeModel:
+            def encode(self, text, normalize_embeddings=True):
+                raise ValueError("some other problem")
+
+        monkeypatch.setattr(
+            chat_semantic, "_get_model_and_prototypes", lambda: (FakeModel(), {})
+        )
+
+        with pytest.raises(ValueError, match="some other problem"):
+            chat_semantic.classify_sentence_semantic("hello world")
+
+
 class TestExtractChatFeatures:
     @requires_model
     def test_basic_chat(self):
