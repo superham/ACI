@@ -93,9 +93,7 @@ class TestClassifyIPv6Fallback:
                     raise ValueError("Invalid IPv6 URL")
                 return [0.0]
 
-        monkeypatch.setattr(
-            chat_semantic, "_get_model_and_prototypes", lambda: (FakeModel(), {})
-        )
+        monkeypatch.setattr(chat_semantic, "_get_model_and_prototypes", lambda: (FakeModel(), {}))
 
         result = chat_semantic.classify_sentence_semantic("visit https://[onion-link")
         assert result == {}
@@ -109,9 +107,7 @@ class TestClassifyIPv6Fallback:
             def encode(self, text, normalize_embeddings=True):
                 raise ValueError("some other problem")
 
-        monkeypatch.setattr(
-            chat_semantic, "_get_model_and_prototypes", lambda: (FakeModel(), {})
-        )
+        monkeypatch.setattr(chat_semantic, "_get_model_and_prototypes", lambda: (FakeModel(), {}))
 
         with pytest.raises(ValueError, match="some other problem"):
             chat_semantic.classify_sentence_semantic("hello world")
