@@ -137,6 +137,8 @@ All calculations are NaN-safe: missing components are skipped and weights are re
 
 ACI scores are published to an interactive web dashboard built with React. The dashboard lets users explore scores, filter by confidence, drill into individual groups, and view year-over-year trends.
 
+Visitors can also **export the data** directly from the dashboard: the full dataset (or any single group) downloads as a polished, multi-sheet Excel workbook, CSV tables, or raw JSON. Exports are generated client-side from the published `dashboard.json`, so they always match what's on screen.
+
 ### Monthly data flow
 
 A GitHub Actions workflow (`.github/workflows/monthly-update.yml`) runs on the 1st of each month:
