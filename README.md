@@ -1,6 +1,6 @@
 # Attacker Credibility Index (ACI)
 
-**Version 1.1** | Created by Alex Kaariainen
+**Version 1.2.1** | Created by Alex Kaariainen
 
 A quantitative framework for scoring ransomware groups on behavioral credibility. ACI collects operational data from public sources, extracts behavioral signals using NLP, and produces a per-group credibility score (ACI, 0-10 scale) derived from three behavioral axes (each 0-1). Designed for incident responders, ransom negotiation teams, and threat intelligence analysts who need to assess how credible a threat actor's promises and threats actually are.
 
@@ -71,10 +71,10 @@ aci query conti --format json
 
 ## Output formats
 
-| Flag | Description |
-|------|-------------|
-| `--format csv` | CSV file (default) |
-| `--format json` | JSON array of records |
+| Flag             | Description                   |
+| ---------------- | ----------------------------- |
+| `--format csv`   | CSV file (default)            |
+| `--format json`  | JSON array of records         |
 | `--format table` | Pretty-printed terminal table |
 
 All commands use sensible default paths (`data/raw/`, `data/processed/`, `reports/`). Override with `--out`, `--claims`, `--chat-features`, `--payments` as needed.
@@ -93,31 +93,31 @@ All commands use sensible default paths (`data/raw/`, `data/processed/`, `report
 
 Weighted mean of:
 
-| Component | Weight | Source | Description |
-|-----------|--------|--------|-------------|
-| `sample_offer_rate` | 0.4 | Chat semantics | How often the group offers free test decryption |
-| `key_delivery_rate` | 0.4 | Chat semantics | How often they reference sending a decryptor/key |
-| `has_payment_data` | 0.2 | ransomwhere.re | Whether confirmed payments exist (proxy for functional payment pipeline) |
+| Component           | Weight | Source         | Description                                                              |
+| ------------------- | ------ | -------------- | ------------------------------------------------------------------------ |
+| `sample_offer_rate` | 0.4    | Chat semantics | How often the group offers free test decryption                          |
+| `key_delivery_rate` | 0.4    | Chat semantics | How often they reference sending a decryptor/key                         |
+| `has_payment_data`  | 0.2    | ransomwhere.re | Whether confirmed payments exist (proxy for functional payment pipeline) |
 
 ### Threat Follow-Through (T)
 
 Weighted mean of:
 
-| Component | Weight | Source | Description |
-|-----------|--------|--------|-------------|
-| `publish_rate` | 0.5 | Claims data | Share of claims that resulted in a data publication |
-| `leak_threat_rate` | 0.5 | Chat semantics | How often leak threats appear in negotiation chats |
-| `on_time_publish_rate` | 0.2 | Claims data | Bonus for publishing on or before stated deadline (if available) |
+| Component              | Weight | Source         | Description                                                      |
+| ---------------------- | ------ | -------------- | ---------------------------------------------------------------- |
+| `publish_rate`         | 0.5    | Claims data    | Share of claims that resulted in a data publication              |
+| `leak_threat_rate`     | 0.5    | Chat semantics | How often leak threats appear in negotiation chats               |
+| `on_time_publish_rate` | 0.2    | Claims data    | Bonus for publishing on or before stated deadline (if available) |
 
 ### Integrity (I)
 
 `I = 1 - bad_score`, where `bad_score` is the weighted mean of:
 
-| Component | Weight | Source | Description |
-|-----------|--------|--------|-------------|
-| `violation_claim_rate` | 0.4 | Chat semantics | Victim accusations of broken promises |
-| `reextortion_behavior_rate` | 0.4 | Chat semantics | Signals of post-payment re-extortion |
-| `data_resale_admission_rate` | 0.2 | Chat semantics | Admissions of selling or sharing stolen data |
+| Component                    | Weight | Source         | Description                                  |
+| ---------------------------- | ------ | -------------- | -------------------------------------------- |
+| `violation_claim_rate`       | 0.4    | Chat semantics | Victim accusations of broken promises        |
+| `reextortion_behavior_rate`  | 0.4    | Chat semantics | Signals of post-payment re-extortion         |
+| `data_resale_admission_rate` | 0.2    | Chat semantics | Admissions of selling or sharing stolen data |
 
 ### Confidence
 
