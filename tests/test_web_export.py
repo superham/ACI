@@ -9,6 +9,7 @@ from aci_tool.web_export import (
     _apply_exclusion_criteria,
     _build_confidence_data,
     _build_group_details,
+    _build_outcome_components,
     _build_outcome_metrics,
     _build_overview_stats,
     _build_per_year_aci_values,
@@ -350,6 +351,101 @@ class TestBuildOutcomeMetrics:
         )
         result = _build_outcome_metrics(df_total, df_chat, ["alpha"])
         assert result == []
+
+    def test_includes_components(self):
+        df_total = pd.DataFrame(
+            {
+                "group": ["alpha"],
+                "ACI": [7.0],
+                "sample_offer_rate": [0.5],
+                "key_delivery_rate": [0.4],
+                "has_payment_data": [1],
+                "publish_rate": [0.9],
+                "leak_threat_rate": [0.7],
+                "on_time_publish_rate": [np.nan],
+                "violation_claim_rate": [0.1],
+                "reextortion_behavior_rate": [0.25],
+                "data_resale_admission_rate": [0.0],
+                "published_claims": [8],
+                "n_paid_chats": [2],
+            }
+        )
+        df_chat = pd.DataFrame(
+            {
+                "group": ["alpha", "alpha", "alpha", "alpha"],
+                "paid": [1, 0, 1, 0],
+                "gave_discount": [1, 0, 1, 0],
+                "discount_ratio": [0.5, 0.0, 0.3, 0.0],
+                "any_reextortion_behavior": [0, 0, 1, 0],
+            }
+        )
+        result = _build_outcome_metrics(df_total, df_chat, ["alpha"])
+        comp = result[0]["components"]
+        assert comp is not None
+        assert comp["sampleOfferRate"] == 0.5
+        assert comp["keyDeliveryRate"] == 0.4
+        assert comp["hasPaymentData"] is True
+        assert comp["publishRate"] == 0.9
+        assert comp["onTimePublishRate"] is None  # NaN -> None
+        assert comp["publishedClaims"] == 8
+        assert comp["nPaidChats"] == 2
+
+
+# ── _build_outcome_components ──────────────────────────────────────────
+
+
+class TestBuildOutcomeComponents:
+    def test_extracts_rates(self):
+        row = pd.Series(
+            {
+                "sample_offer_rate": 0.5,
+                "key_delivery_rate": 0.25,
+                "has_payment_data": 1,
+                "publish_rate": 0.8,
+                "leak_threat_rate": 0.6,
+                "on_time_publish_rate": 0.4,
+                "violation_claim_rate": 0.1,
+                "reextortion_behavior_rate": 0.2,
+                "data_resale_admission_rate": 0.0,
+                "published_claims": 12,
+                "n_paid_chats": 3,
+            }
+        )
+        comp = _build_outcome_components(row)
+        assert comp["sampleOfferRate"] == 0.5
+        assert comp["keyDeliveryRate"] == 0.25
+        assert comp["hasPaymentData"] is True
+        assert comp["publishRate"] == 0.8
+        assert comp["leakThreatRate"] == 0.6
+        assert comp["onTimePublishRate"] == 0.4
+        assert comp["violationClaimRate"] == 0.1
+        assert comp["reextortionBehaviorRate"] == 0.2
+        assert comp["dataResaleAdmissionRate"] == 0.0
+        assert comp["publishedClaims"] == 12
+        assert comp["nPaidChats"] == 3
+
+    def test_nan_and_missing_become_none(self):
+        row = pd.Series({"sample_offer_rate": np.nan})
+        comp = _build_outcome_components(row)
+        assert comp["sampleOfferRate"] is None  # NaN -> None
+        assert comp["keyDeliveryRate"] is None  # missing column -> None
+        assert comp["hasPaymentData"] is False  # missing -> 0 -> False
+        assert comp["publishedClaims"] == 0
+        assert comp["nPaidChats"] == 0
+
+    def test_json_serializable(self):
+        import json
+
+        row = pd.Series(
+            {
+                "sample_offer_rate": 0.5,
+                "has_payment_data": 0,
+                "published_claims": 4,
+            }
+        )
+        comp = _build_outcome_components(row)
+        # Should not raise (no numpy types leaking through)
+        json.dumps(comp)
 
 
 # ── _build_group_details ───────────────────────────────────────────────

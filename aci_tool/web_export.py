@@ -147,6 +147,41 @@ def _build_rti_values(df_total: pd.DataFrame, qualifying_groups: list[str]) -> l
     return results
 
 
+def _build_outcome_components(row: pd.Series) -> dict:
+    """
+    Expose the raw per-signal rates that feed the R/T/I pillars (and therefore
+    the ACI) for a single group.
+
+    These are the intermediate values computed in scoring.py:
+
+      R = 0.4*sample_offer_rate + 0.4*key_delivery_rate + 0.2*has_payment_data
+      T = 0.5*publish_rate      + 0.5*leak_threat_rate  + 0.2*on_time_publish_rate
+      I = 1 - (0.4*violation_claim_rate + 0.4*reextortion_behavior_rate
+               + 0.2*data_resale_admission_rate)
+
+    Rates are proportions in [0, 1] (or null when the underlying signal was not
+    observed). The dashboard uses them to power an "advanced" breakdown of how
+    each score was derived. Keys are camelCase to match the frontend contract.
+    """
+    return {
+        # Reliability (R) inputs
+        "sampleOfferRate": _safe_round(row.get("sample_offer_rate"), 4),
+        "keyDeliveryRate": _safe_round(row.get("key_delivery_rate"), 4),
+        "hasPaymentData": bool(_safe_int(row.get("has_payment_data"))),
+        # Threat follow-through (T) inputs
+        "publishRate": _safe_round(row.get("publish_rate"), 4),
+        "leakThreatRate": _safe_round(row.get("leak_threat_rate"), 4),
+        "onTimePublishRate": _safe_round(row.get("on_time_publish_rate"), 4),
+        # Integrity (I) inputs — negative signals subtracted from 1
+        "violationClaimRate": _safe_round(row.get("violation_claim_rate"), 4),
+        "reextortionBehaviorRate": _safe_round(row.get("reextortion_behavior_rate"), 4),
+        "dataResaleAdmissionRate": _safe_round(row.get("data_resale_admission_rate"), 4),
+        # Supporting volume
+        "publishedClaims": _safe_int(row.get("published_claims")),
+        "nPaidChats": _safe_int(row.get("n_paid_chats")),
+    }
+
+
 def _build_outcome_metrics(
     df_total: pd.DataFrame,
     df_chat_features: pd.DataFrame,
@@ -181,6 +216,9 @@ def _build_outcome_metrics(
         if "any_reextortion_behavior" in group_chats.columns:
             reextortion_rate = group_chats["any_reextortion_behavior"].sum() / n
 
+        # Raw per-signal rates behind R/T/I (for the advanced dashboard view)
+        components = _build_outcome_components(group_aci.iloc[0]) if not group_aci.empty else None
+
         results.append(
             {
                 "brand": group,
@@ -189,6 +227,7 @@ def _build_outcome_metrics(
                 "discountFrequency": f"{discount_freq * 100:.0f}%",
                 "discountAmount": f"{discount_amt * 100:.0f}%",
                 "rateOfReExtortion": f"{reextortion_rate * 100:.0f}%",
+                "components": components,
             }
         )
 
