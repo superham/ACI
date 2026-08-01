@@ -50,6 +50,30 @@ def _require_file(path: str, label: str, hint: str):
         sys.exit(f"[ACI] {label} not found at {path} \u2014 {hint}")
 
 
+def _fetch_payments_optional():
+    """
+    Fetch ransomwhere payments, degrading gracefully when the API is unreachable.
+
+    Payment data only enriches Reliability scoring (has_payment_data), and every
+    downstream consumer already treats it as optional \u2014 so an upstream outage
+    should not abort a collection run that has otherwise succeeded.
+
+    Returns None when the data is unavailable, which is deliberately distinct
+    from [] (fetched successfully, but no records). Only transport-level errors
+    are absorbed; a parsing bug in the collector still raises.
+    """
+    try:
+        return fetch_payments()
+    except requests.RequestException as e:
+        print(f"[ACI] WARNING: payment data unavailable ({e}) \u2014 continuing without it.")
+        return None
+
+
+def _payments_summary(pays) -> str:
+    """Describe the payments fetch result for end-of-run summaries."""
+    return "payments unavailable" if pays is None else f"{len(pays)} payments"
+
+
 # ── Output formatters ──────────────────────────────────────────────────────
 def _output(df: pd.DataFrame, path: str, fmt: str):
     """Write a DataFrame to the requested format and print a summary."""
@@ -115,13 +139,16 @@ def cmd_collect(args):
     claims = fetch_claims(cfg.rlive_api_key, since=args.since)
     dump_rlive(claims, DEFAULT_CLAIMS)
 
-    pays = fetch_payments()
-    dump_rwhere(pays, DEFAULT_PAYMENTS)
-
     negs = fetch_negotiations(cfg.rlive_api_key, limit_groups=args.neg_limit)
     dump_raw_negotations(negs, DEFAULT_NEGOTIATIONS)
 
-    print(f"[ACI] Collected {len(claims)} claims, {len(pays)} payments, {len(negs)} negotiation chats.")
+    # Optional source, fetched last so an outage can't block the essential ones.
+    # On failure any existing payments file is left in place rather than cleared.
+    pays = _fetch_payments_optional()
+    if pays is not None:
+        dump_rwhere(pays, DEFAULT_PAYMENTS)
+
+    print(f"[ACI] Collected {len(claims)} claims, {len(negs)} negotiation chats, {_payments_summary(pays)}.")
 
 
 def cmd_chat_features(args):
@@ -168,11 +195,13 @@ def cmd_run(args):
         cfg = Config(rlive_api_key=os.getenv("RLIVE_API_KEY"))
         claims = fetch_claims(cfg.rlive_api_key, since=args.since)
         dump_rlive(claims, DEFAULT_CLAIMS)
-        pays = fetch_payments()
-        dump_rwhere(pays, DEFAULT_PAYMENTS)
         negs = fetch_negotiations(cfg.rlive_api_key, limit_groups=args.neg_limit)
         dump_raw_negotations(negs, DEFAULT_NEGOTIATIONS)
-        print(f"[ACI]   \u2192 {len(claims)} claims, {len(pays)} payments, {len(negs)} chats")
+        # Optional source, fetched last so an outage can't block the essential ones.
+        pays = _fetch_payments_optional()
+        if pays is not None:
+            dump_rwhere(pays, DEFAULT_PAYMENTS)
+        print(f"[ACI]   \u2192 {len(claims)} claims, {len(negs)} chats, {_payments_summary(pays)}")
     else:
         print("[ACI] Step 1/3: Skipping collection (--skip-collect)")
         _require_file(
@@ -272,8 +301,9 @@ def cmd_web_export(args):
         cfg = Config(rlive_api_key=os.getenv("RLIVE_API_KEY"))
         try:
             claims = fetch_claims(cfg.rlive_api_key, since=args.since)
-            pays = fetch_payments()
             negs = fetch_negotiations(cfg.rlive_api_key, limit_groups=args.neg_limit)
+            # Optional source, fetched last so an outage can't block the essential ones.
+            pays = _fetch_payments_optional()
         except requests.HTTPError as e:
             print(f"[ACI] ERROR: HTTP request failed during data collection: {e}")
             sys.exit(1)
@@ -282,9 +312,12 @@ def cmd_web_export(args):
             traceback.print_exc()
             sys.exit(1)
         dump_rlive(claims, DEFAULT_CLAIMS)
-        dump_rwhere(pays, DEFAULT_PAYMENTS)
         dump_raw_negotations(negs, DEFAULT_NEGOTIATIONS)
-        print(f"[ACI]   \u2192 {len(claims)} claims, {len(pays)} payments, {len(negs)} chats")
+        # Leave any pre-existing payments file intact when the fetch failed, so a
+        # local re-run reuses the last good data instead of dropping the section.
+        if pays is not None:
+            dump_rwhere(pays, DEFAULT_PAYMENTS)
+        print(f"[ACI]   \u2192 {len(claims)} claims, {len(negs)} chats, {_payments_summary(pays)}")
 
         if len(claims) == 0 and len(negs) == 0:
             print("[ACI] ERROR: No claims or negotiations collected. Check that RLIVE_API_KEY is set and valid.")

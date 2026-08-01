@@ -70,9 +70,15 @@ def _build_overview_stats(
     df_total: pd.DataFrame,
     qualifying_groups: list[str],
     n_chats_total: int,
-    n_payments_total: int,
+    n_payments_total: Optional[int],
 ) -> list[dict]:
-    """Build the overview statistics cards."""
+    """
+    Build the overview statistics cards.
+
+    `n_payments_total` of None means the payment source was unavailable for this
+    run, which is rendered as "Unavailable" rather than 0 — publishing a zero
+    would read as "no ransom payments on record" instead of "we couldn't fetch".
+    """
     filtered = df_total[df_total["group"].isin(qualifying_groups)]
     aci_vals = filtered["ACI"].dropna()
 
@@ -84,7 +90,10 @@ def _build_overview_stats(
         {"label": "Ransomware Brands Scored:", "value": str(len(qualifying_groups))},
         {"label": "Negotiation Transcripts:", "value": f"{n_chats_total:,}"},
         {"label": "ACI Range", "value": aci_range},
-        {"label": "Payment Records", "value": f"{n_payments_total:,}"},
+        {
+            "label": "Payment Records",
+            "value": "Unavailable" if n_payments_total is None else f"{n_payments_total:,}",
+        },
     ]
 
 
@@ -314,13 +323,14 @@ def generate_dashboard_json(
     n_chats_total = (
         int(df_chat_features["chat_id"].nunique()) if "chat_id" in df_chat_features.columns else len(df_chat_features)
     )
-    n_payments_total = 0
+    # None (not 0) when there is no readable payments file — see _build_overview_stats.
+    n_payments_total: Optional[int] = None
     if payments_path and os.path.exists(payments_path):
         try:
             df_payments = pd.read_json(payments_path, lines=True)
             n_payments_total = len(df_payments)
         except Exception:
-            pass
+            n_payments_total = None
 
     # Build all sections
     dashboard = {

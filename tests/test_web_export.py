@@ -289,6 +289,24 @@ class TestBuildOverviewStats:
         assert "7.5" in result[2]["value"]  # ACI range max
         assert result[3]["value"] == "1,000"  # payments
 
+    def test_payments_unavailable_is_not_reported_as_zero(self):
+        """A payment-source outage must not publish '0' — that would read as
+        'no payments on record' rather than 'we could not fetch them'."""
+        df = pd.DataFrame({"group": ["alpha"], "ACI": [7.5]})
+
+        result = _build_overview_stats(df, ["alpha"], 50, None)
+
+        assert result[3]["label"] == "Payment Records"
+        assert result[3]["value"] == "Unavailable"
+
+    def test_payments_genuinely_zero_still_reports_zero(self):
+        """Zero is a real, distinct outcome: the fetch worked and found nothing."""
+        df = pd.DataFrame({"group": ["alpha"], "ACI": [7.5]})
+
+        result = _build_overview_stats(df, ["alpha"], 50, 0)
+
+        assert result[3]["value"] == "0"
+
 
 # ── _build_confidence_data ─────────────────────────────────────────────
 
