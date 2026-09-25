@@ -10,15 +10,31 @@ from typing import List, Optional
 import requests
 
 from ..schemas import Negotiation
+from ._http import session_with_retries
 
 BASE = "https://api-pro.ransomware.live"
+
+# A handful of chats can stay unreachable even after retries (the API 502s on
+# individual chat IDs). Skip those rather than failing the whole export, but
+# abort if more than this fraction of chats fail so an outage can't quietly
+# publish a gutted dataset.
+MAX_CHAT_FAILURE_RATIO = 0.1
+
+_session: Optional[requests.Session] = None
+
+
+def _get(url: str, headers: dict) -> requests.Response:
+    global _session
+    if _session is None:
+        _session = session_with_retries()
+    return _session.get(url, headers=headers, timeout=30)
 
 
 # Call /negotiations to get list of groups that have negotiation logs.
 def fetch_negotiation_groups(api_key: str):
     headers = {"User-Agent": "ACI-Toolkit/0.1", "X-API-KEY": api_key}
     url = f"{BASE}/negotiations"
-    r = requests.get(url, headers=headers, timeout=30)
+    r = _get(url, headers)
     r.raise_for_status()
     return r.json()
 
@@ -27,7 +43,7 @@ def fetch_negotiation_groups(api_key: str):
 def fetch_group_chats(api_key: str, group: str):
     headers = {"User-Agent": "ACI-Toolkit/0.1", "X-API-KEY": api_key}
     url = f"{BASE}/negotiations/{group}"
-    r = requests.get(url, headers=headers, timeout=30)
+    r = _get(url, headers)
     if r.status_code == 404:
         return []
     r.raise_for_status()
@@ -46,7 +62,7 @@ def fetch_group_chats(api_key: str, group: str):
 def fetch_chat_detail(api_key: str, group: str, chat_id: str):
     headers = {"User-Agent": "ACI-Toolkit/0.1", "X-API-KEY": api_key}
     url = f"{BASE}/negotiations/{group}/{chat_id}"
-    r = requests.get(url, headers=headers, timeout=30)
+    r = _get(url, headers)
     r.raise_for_status()
     return r.json()
 
@@ -78,6 +94,8 @@ def fetch_negotiations(api_key: Optional[str], limit_groups: Optional[int] = Non
         groups = groups[:limit_groups]
 
     records: List[Negotiation] = []
+    attempted = 0
+    failed = 0
 
     for g in groups:
         chats_meta = fetch_group_chats(api_key, g)
@@ -87,7 +105,13 @@ def fetch_negotiations(api_key: Optional[str], limit_groups: Optional[int] = Non
             if not chat_id:
                 continue
 
-            detail = fetch_chat_detail(api_key, g, chat_id)
+            attempted += 1
+            try:
+                detail = fetch_chat_detail(api_key, g, chat_id)
+            except requests.RequestException as e:
+                failed += 1
+                print(f"[NEGOTIATIONS] WARNING: skipping {g}/{chat_id} after retries: {e}")
+                continue
 
             messages = detail.get("messages", [])
             ransominfo = detail.get("ransominfo", {})
@@ -113,6 +137,13 @@ def fetch_negotiations(api_key: Optional[str], limit_groups: Optional[int] = Non
                 meta={k: v for k, v in chat.items() if k not in {"chat_id", "id", "victim"}},
             )
             records.append(rec)
+
+    if failed:
+        print(f"[NEGOTIATIONS] Skipped {failed}/{attempted} chats that could not be fetched.")
+        if failed > attempted * MAX_CHAT_FAILURE_RATIO:
+            raise requests.HTTPError(
+                f"{failed}/{attempted} negotiation chats failed (limit {MAX_CHAT_FAILURE_RATIO:.0%}); aborting"
+            )
 
     return records
 
