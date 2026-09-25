@@ -2,10 +2,9 @@ import json
 import os
 from typing import List, Optional
 
-import requests
-
 from ..schemas import Claim
 from ..utils import parse_dt
+from ._http import session_with_retries
 
 # Pro API ransomware - used to infer leak site removal
 BASE = "https://api-pro.ransomware.live"
@@ -22,7 +21,7 @@ def fetch_claims(api_key: Optional[str], since: Optional[str] = None) -> List[Cl
 
     url = f"{BASE}{VICTIMS_RECENT_PATH}"
     try:
-        r = requests.get(url, headers=headers, params=params, timeout=30)
+        r = session_with_retries().get(url, headers=headers, params=params, timeout=30)
         if r.status_code == 401:
             raise Exception("Authentication failed — check your RLIVE_API_KEY")
 
